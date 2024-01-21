@@ -1,0 +1,35 @@
+﻿<Project>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <DebugType>embedded</DebugType>
+        <Nullable>enable</Nullable>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <!--<SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\Integro.snk</AssemblyOriginatorKeyFile>-->
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Version>1.0.1</Version>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Update="Roslynator.Analyzers">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SonarAnalyzer.CSharp">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="..\GlobalAssemblyInformation.cs" />
+    </ItemGroup>
+</Project>

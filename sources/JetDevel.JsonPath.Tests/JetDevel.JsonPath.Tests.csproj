@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\CommonTest.targets" />
+
+    <ItemGroup>
+        <ProjectReference Include="..\JetDevel.JsonPath\JetDevel.JsonPath.csproj" />
+    </ItemGroup>
+
+</Project>

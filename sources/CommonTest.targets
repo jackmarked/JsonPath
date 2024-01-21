@@ -1,0 +1,29 @@
+﻿<Project>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <Nullable>disable</Nullable>
+        <!--<SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\Integro.snk</AssemblyOriginatorKeyFile>-->
+        <IsPackable>false</IsPackable>
+        <Optimize>False</Optimize>
+        <IsTestProject>true</IsTestProject>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="..\GlobalAssemblyInformation.cs" />
+        <Compile Include="..\GlobalAssemblyInformationTests.cs" />
+    </ItemGroup>
+    <ItemGroup>
+
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="NUnit" />
+        <PackageReference Include="Moq" />
+        <PackageReference Include="NUnit3TestAdapter" />
+        <PackageReference Include="NUnit.Analyzers" />
+        <PackageReference Include="coverlet.collector" />
+    </ItemGroup>
+</Project>
