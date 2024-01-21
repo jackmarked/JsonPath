@@ -12,7 +12,7 @@ sealed class LexerTests
     }
     static List<Token> GetTokens(ReadOnlySpan<byte> utf8Bytes, bool withEof = false)
     {
-        var lexer = new Lexer(utf8Bytes);
+        var lexer = new Lexer(new Utf8BytesUnicodeCharacterReader(utf8Bytes.ToArray()));
         var result = new List<Token>();
         Token token;
         do
@@ -59,7 +59,7 @@ sealed class LexerTests
     public void Constructor_CallWithNull_ThrowsArgumentNullExeption()
     {
         // Arange.
-        string value = null;
+        UnicodeCharacterReader value = null;
 
         // Act.
         Lexer action() => new(value);
@@ -78,10 +78,10 @@ sealed class LexerTests
         });
     }
     [Test]
-    public void GetTokens_CallWithEmptyString_ReturnsEndOfFile()
+    public void GetTokens_CallWithEmptyReader_ReturnsEndOfFile()
     {
         // Arange.
-        var value = string.Empty;
+        var value = new Utf8BytesUnicodeCharacterReader([]);
         var lexer = new Lexer(value);
 
         // Act.
@@ -95,7 +95,6 @@ sealed class LexerTests
     {
         // Arange.
         var value = "$";
-        var lexer = new Lexer(value);
         SyntaxKind[] expectedKinds = [SyntaxKind.DollarMarkToken];
 
         // Act.
@@ -262,7 +261,6 @@ sealed class LexerTests
 
         // Assert.
         AssertTokenKinds(source,
-            SyntaxKind.ByteOrderMark,
             SyntaxKind.DollarMarkToken);
     }
     [Test]
@@ -408,7 +406,7 @@ sealed class LexerTests
     public void GetTokens_CallWithWrongDoubleEscapedStringLiteral_ReturnsUnknown1()
     {
         // Arange.
-        var source = """##""";
+        var source = """ #  # """;
 
         // Assert.
         AssertTokenKinds(source, SyntaxKind.Unknown, SyntaxKind.Unknown);

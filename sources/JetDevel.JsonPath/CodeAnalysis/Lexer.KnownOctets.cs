@@ -58,6 +58,10 @@ partial class Lexer
         /// </summary>
         public const byte A = (byte)'A';
         /// <summary>
+        /// Latin lowercase letter a ('a').
+        /// </summary>
+        public const byte a = (byte)'a';
+        /// <summary>
         /// Latin uppercase letter B ('B').
         /// </summary>
         public const byte B = (byte)'B';
@@ -69,6 +73,10 @@ partial class Lexer
         /// Latin uppercase letter D ('D').
         /// </summary>
         public const byte D = (byte)'D';
+        /// <summary>
+        /// Latin lowercase letter d ('d').
+        /// </summary>
+        public const byte d = (byte)'d';
         /// <summary>
         /// Latin uppercase letter E ('E').
         /// </summary>

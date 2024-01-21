@@ -5,7 +5,7 @@ public sealed class StringLiteralSyntax: LiteralExpressionSyntax<string>
     internal StringLiteralSyntax(Token readToken) : base(SyntaxFacts.GetStringLiteralValue(readToken.Text))
     {
     }
-    public override SyntaxKind Kind => SyntaxKind.Unknown;
+    public override SyntaxKind Kind => SyntaxKind.StringLiteral;
     public override string ToString()
     {
         return @"""" + Value + @"""";

@@ -508,7 +508,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
 """;
         AssertQueryResult(source, "$.o[?!('2' == '2')].name", @"[]");
         AssertQueryResult(source, "$.o[?!('2' == '3')].name", @"[""Bill"", ""Fill"", ""Mill""]");
-        //AssertQueryResult(source, "$.o[?'2' != '3'].name", @"[""Bill"", ""Fill"", ""Mill""]");
+        AssertQueryResult(source, "$.o[?'2' != '3'].name", @"[""Bill"", ""Fill"", ""Mill""]");
     }
     [Test]
     public void ExpressionLogicalAndSamples()
@@ -534,7 +534,6 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertQueryResult(source, "$.o[?'3' == '3' && 4 == 4].name", @"[""Bill"", ""Fill"", ""Mill""]");
         AssertQueryResult(source, "$.o[?'3' == '3' && 4 == 3].name", @"[]");
         AssertQueryResult(source, "$.o[?'3' == '4' && 4 == 4].name", @"[]");
-        //AssertQueryResult(source, "$.o[?'2' != '3'].name", @"[""Bill"", ""Fill"", ""Mill""]");
     }
     [Test]
     public void ExpressionLogicalOrSamples()

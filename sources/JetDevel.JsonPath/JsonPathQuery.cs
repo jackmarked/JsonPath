@@ -20,7 +20,8 @@ public abstract class JsonPathQuery
     }
     public static JsonPathQuery FromUtf8(ReadOnlySpan<byte> utf8Bytes)
     {
-        var lexer = new Lexer(utf8Bytes);
+        var charReader = new Utf8BytesUnicodeCharacterReader(utf8Bytes.ToArray());
+        var lexer = new Lexer(charReader);
         Parser parser = new Parser(lexer);
         return FromSyntax(parser.ParseQuery());
     }

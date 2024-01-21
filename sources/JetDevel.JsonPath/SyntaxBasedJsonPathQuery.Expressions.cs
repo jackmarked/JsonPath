@@ -54,9 +54,9 @@ partial class SyntaxBasedJsonPathQuery
     }
     static ExpressionValue EvaluateFunction(FunctionExpressionSyntax function, ExpressionEvaluationContext context)
     {
-        var args = function.Arguments;
         if(function.Name != "length")
             return ExpressionValue.Nothing;
+        var args = function.Arguments;
         if(args.Count < 1)
             return ExpressionValue.Nothing;
         var expressionValue = EvaluateExpression(args[0], context);

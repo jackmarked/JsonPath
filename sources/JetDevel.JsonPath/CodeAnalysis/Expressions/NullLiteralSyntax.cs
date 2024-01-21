@@ -5,5 +5,5 @@ public sealed class NullLiteralSyntax : LiteralExpressionSyntax<object>
     internal NullLiteralSyntax() : base(null!)
     {
     }
-    public override SyntaxKind Kind => SyntaxKind.NullLiteralExpression;
+    public override SyntaxKind Kind => SyntaxKind.NullLiteral;
 }

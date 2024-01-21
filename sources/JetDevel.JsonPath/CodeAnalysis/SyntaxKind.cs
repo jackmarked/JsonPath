@@ -128,13 +128,12 @@ public enum SyntaxKind: ulong
     /// ")".
     /// </summary>
     CloseParenToken = 25,
-    ByteOrderMark = 26,
     EndOfFile = 27,
 
 
     JsonPathQuery = 28,
     LogcalNotExpression = 29,
-    NullLiteralExpression = 30,
+    NullLiteral = 30,
     EqualsExpression = 31,
     ParenthesizedExpression = 32,
     LessThanExpression = 33,
@@ -146,5 +145,6 @@ public enum SyntaxKind: ulong
     LogicalOrExpression = 39,
     FunctionExpression = 40,
     FilterQueryExpression = 41,
-    SingularQueryExpression = 42
+    SingularQueryExpression = 42,
+    StringLiteral = 43
 }

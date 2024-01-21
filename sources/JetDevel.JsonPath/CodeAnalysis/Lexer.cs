@@ -1,121 +1,48 @@
 ﻿using System.Buffers;
-using System.Text;
+using System.Runtime.InteropServices;
 
 namespace JetDevel.JsonPath.CodeAnalysis;
 
 public sealed partial class Lexer
 {
-    readonly byte[] source;
+    readonly UnicodeCharacterReader source;
     readonly static SearchValues<byte> blankSpaces = SearchValues.Create("\u0020\u0009\u000A\u000D"u8);
 
     readonly static SearchValues<byte> digits1 = SearchValues.Create("123456789"u8);
     readonly static SearchValues<byte> alpha = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"u8);
     Token nextToken;
-    int startPosition;
-    int currentPosition;
-    int maxPosition;
-    int sourceLength;
     int codePoint;
-    int symbolLength;
+    bool isEndOfStream;
+    List<int> buffer = [];
 #if DEBUG
     public string Symbol => char.ConvertFromUtf32(codePoint);
 #endif
-    public Lexer(string source) : this(Encoding.UTF8.GetBytes(source ?? throw new ArgumentNullException(nameof(source))))
-    {
-    }
-    public Lexer(ReadOnlySpan<byte> utf8bytes) : this(utf8bytes.ToArray())
-    {
-    }
-    static Utf8SmbolKind[] symbolLengthTable = new Utf8SmbolKind[256];
-    static Lexer()
-    {
-        for(int i = 0; i < symbolLengthTable.Length; i++)
-            symbolLengthTable[i] = GetSymbolLengthKindInternal((byte)i);
-    }
-    internal Lexer(byte[] source)
+    public Lexer(UnicodeCharacterReader source)
     {
         ArgumentNullException.ThrowIfNull(source);
         this.source = source;
-        sourceLength = source.Length;
-        maxPosition = sourceLength - 1;
-        AddChar();
-        if(StartWithBom())
-        {
-            nextToken = new Token(SyntaxKind.ByteOrderMark, source.AsSpan()[..3]);
-            AddChar();
-        }
-        else
-            nextToken = Scan();
+        isEndOfStream = !source.TryReadNext(out var chrarcter);
+        codePoint = chrarcter.CodePoint;
+        nextToken = Scan();
     }
-
-    bool StartWithBom() =>
-        sourceLength > 2 && source[0] == 0xEF && source[1] == 0xBB && source[2] == 0xBF;
-
     void AddChar()
     {
-        currentPosition += symbolLength;
-        symbolLength = 1;
-        if(IsEof())
+        if(isEndOfStream)
             return;
-        var octet = source[currentPosition];
-        if(octet < 0x80)
-            codePoint = octet;
-        else
-            codePoint = GetMultiOctetSymbol(octet);
-    }
-    int GetMultiOctetSymbol(byte firstOctet)
-    {
-        var kind = GetSymbolLengthKind(firstOctet);
-        if(kind == Utf8SmbolKind.Unexpectd || kind == Utf8SmbolKind.OneOctet)
-            return firstOctet;
-        var secondOctet = LookNextOctet(1);
-        if(!IsValidNotFistSymbolOctet(secondOctet))
-            return firstOctet;
-        symbolLength = (int)kind;
-        if(kind == Utf8SmbolKind.TwoOctets)
-            return GetUnicodeSymbolCode(firstOctet, secondOctet);
-        var thirdOctet = LookNextOctet(2);
-        if(!IsValidNotFistSymbolOctet(thirdOctet))
-            return firstOctet;
-        if(kind == Utf8SmbolKind.ThreeOctets)
-            return GetUnicodeSymbolCode(firstOctet, secondOctet, thirdOctet);
-        var forthOctet = LookNextOctet(3);
-        if(!IsValidNotFistSymbolOctet(forthOctet))
-            return firstOctet;
-        return GetUnicodeSymbolCode(firstOctet, secondOctet, thirdOctet, forthOctet);
-    }
-    void AddChars(int count)
-    {
-        currentPosition += count;
-        if(IsNotEof())
-            codePoint = source[currentPosition];
-    }
-    byte LookNextOctet(int index)
-    {
-        var sourceIndex = currentPosition + index;
-        if(sourceIndex < sourceLength)
-            return source[sourceIndex];
-        else
-            throw new InvalidOperationException("Unexpected end of file.");
-    }
-    bool IsNotEof()
-    {
-        return currentPosition < sourceLength;
-    }
-    bool IsEof()
-    {
-        return currentPosition > maxPosition;
+        buffer.Add(codePoint);
+        isEndOfStream = !source.TryReadNext(out var chrarcter);
+        codePoint = chrarcter.CodePoint;
     }
     Token CreateToken(SyntaxKind kind)
     {
-        var token = new Token(kind, source.AsSpan(startPosition, currentPosition - startPosition));
-        startPosition = currentPosition;
+        var token = new Token(kind, CollectionsMarshal.AsSpan(buffer));
+        buffer.Clear();
         return token;
     }
     void SkipWhiteSpaces()
     {
-        while(TryRead(blankSpaces))
-            startPosition = currentPosition;
+        ReadAll(blankSpaces);
+        buffer.Clear();
     }
     public Token GetNextToken()
     {
@@ -125,21 +52,21 @@ public sealed partial class Lexer
     }
     bool TryRead(int value)
     {
-        if(IsEof() || codePoint != value)
+        if(isEndOfStream || codePoint != value)
             return false;
         AddChar();
         return true;
     }
     bool TryRead(SearchValues<byte> values)
     {
-        if(IsEof() || codePoint > 0x7f || !values.Contains((byte)codePoint))
+        if(isEndOfStream || codePoint > 0x7f || !values.Contains((byte)codePoint))
             return false;
         AddChar();
         return true;
     }
     bool TryRead(Func<int, bool> predicate)
     {
-        if(IsEof() || !predicate(codePoint))
+        if(isEndOfStream || !predicate(codePoint))
             return false;
         AddChar();
         return true;
@@ -194,7 +121,7 @@ public sealed partial class Lexer
     private Token Scan()
     {
         SkipWhiteSpaces();
-        if(IsEof())
+        if(isEndOfStream)
             return new Token(SyntaxKind.EndOfFile);
         switch(codePoint)
         {
@@ -340,9 +267,9 @@ HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
     Token SingleQuotedStringLiteral()
     {
         Expect(KnownOctets.SingleQuote);
-
-        while(IsNotEof())
-            if(!(Unescaped() || TryRead(KnownOctets.DoubleQuote) || EscapeSingleQuoteOrEscapable()))
+        bool failed = false;
+        while(!isEndOfStream)
+            if(!(Unescaped() || TryRead(KnownOctets.DoubleQuote) || EscapeSingleQuoteOrEscapable(out failed)) || failed)
                 break;
         if(TryRead(KnownOctets.SingleQuote))
             return CreateToken(SyntaxKind.StringLiteralToken);
@@ -357,40 +284,38 @@ HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
     Token DoubleQuotedStringLiteral()
     {
         Expect(KnownOctets.DoubleQuote);
-        while(IsNotEof())
-            if(!(Unescaped() || TryRead(KnownOctets.SingleQuote) || EscapeDoubleQuoteOrEscapable()))
+        bool failed = false;
+        while(!isEndOfStream)
+            if(!(Unescaped() || TryRead(KnownOctets.SingleQuote) || EscapeDoubleQuoteOrEscapable(out failed)) || failed)
                 break;
 
         if(TryRead(KnownOctets.DoubleQuote))
             return CreateToken(SyntaxKind.StringLiteralToken);
         return CreateToken(SyntaxKind.Unknown);
-
-        /*
-        double-quoted       = unescaped /
-                              %x27      /                    ; '
-                              ESC %x22  /                    ; \"
-                              ESC escapable
-         */
     }
-    bool EscapeDoubleQuoteOrEscapable()
+    bool EscapeDoubleQuoteOrEscapable(out bool failed)
     {
+        failed = false;
         if(!TryRead(KnownOctets.BackSlash))
             return false;
         if(TryRead(KnownOctets.DoubleQuote))
             return true;
-        return Escapeble();
+        failed = !Escapeble();
+        return true;
     }
-    bool EscapeSingleQuoteOrEscapable()
+    bool EscapeSingleQuoteOrEscapable(out bool failed)
     {
+        failed = false;
         if(!TryRead(KnownOctets.BackSlash))
             return false;
         if(TryRead(KnownOctets.SingleQuote))
             return true;
-        return Escapeble();
+        failed = !Escapeble();
+        return true;
     }
     bool Escapeble()
     {
-        if(IsEof())
+        if(isEndOfStream)
             return false;
         switch(codePoint)
         {
@@ -409,174 +334,69 @@ HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
         }
         return false;
     }
-
+    /// <summary>
+    /// hexchar = non-surrogate / (high-surrogate "\" %x75 low-surrogate)
+    /// </summary>
+    /// <returns></returns>
     private bool HexChar()
     {
-        return Surrogate() || NonSurrogate();
-        /*
-hexchar             = non-surrogate /
-                  (high-surrogate "\" %x75 low-surrogate)
-non-surrogate       = ((DIGIT / "A"/"B"/"C" / "E"/"F") 3HEXDIG) /
-                   ("D" %x30-37 2HEXDIG )
-high-surrogate      = "D" ("8"/"9"/"A"/"B") 2HEXDIG
-low-surrogate       = "D" ("C"/"D"/"E"/"F") 2HEXDIG
+        var nonSurrogate = TryReadSequence([
+            s1 => s1 < 0x80 && KnownOctets.HexDigitsWithoutD.Contains((byte)s1),
+            IsHexDigit,
+            IsHexDigit,
+            IsHexDigit], out var readed);
+        if(nonSurrogate)
+            return true;
+        if(readed)
+            return false;
 
-HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
-*/
-    }
-
-    private bool NonSurrogate()
-    {
-        if(codePoint == KnownOctets.D || codePoint == 'd') // ("D" %x30-37 2HEXDIG )
+        if(codePoint is not (KnownOctets.D or KnownOctets.d))
+            return false;
+        AddChar();
+        return codePoint switch
         {
-            var next = LookNextOctet(1);
-            if(next < 0x30 || next > 0x37)
-                return false;
-            next = LookNextOctet(2);
-            if(!KnownOctets.HexDigits.Contains(next))
-                return false;
-            next = LookNextOctet(3);
-            if(KnownOctets.HexDigits.Contains(next))
-            {
-                AddChars(3);
-                return true;
-            }
-            return false;
-
-        }
-        if(codePoint < 0x80 && KnownOctets.HexDigitsWithoutD.Contains((byte)codePoint)) // ((DIGIT / "A"/"B"/"C" / "E"/"F") 3HEXDIG)
-        {
-            var next = LookNextOctet(1);
-            if(!KnownOctets.HexDigits.Contains(next))
-                return false;
-            next = LookNextOctet(2);
-            if(!KnownOctets.HexDigits.Contains(next))
-                return false;
-            next = LookNextOctet(3);
-            if(KnownOctets.HexDigits.Contains(next))
-            {
-                AddChars(3);
-                return true;
-            }
-        }
-        /*
-non-surrogate       =  ("D" %x30-37 2HEXDIG ) /
-                   ((DIGIT / "A"/"B"/"C" / "E"/"F") 3HEXDIG)
-
-         */
-        return false;
+            '0' or '1' or '2' or '3' or '4' or '5' or '6' or '7' =>TryReadSequence([
+                IsHexDigit,
+                IsHexDigit], out _),
+            '8' or '9' or KnownOctets.A or KnownOctets.a or KnownOctets.B or KnownOctets.b => TryReadSequence([
+                IsHexDigit,
+                IsHexDigit,
+                s6 => s6 is KnownOctets.BackSlash,
+                s7 => s7 is KnownOctets.u,
+                s8 => s8 is KnownOctets.D or 'd',
+                s9 => s9 is KnownOctets.C or KnownOctets.D or KnownOctets.E or KnownOctets.F or 'c' or 'd' or 'e' or 'f',
+                IsHexDigit,
+                IsHexDigit], out _),
+            _ => false,
+        };
     }
-
-    private bool Surrogate()
+    bool TryReadSequence(ReadOnlySpan<Predicate<int>> predicates, out bool readAny)
     {
-        if(codePoint != KnownOctets.D)
-            return false;
-
-        var next = LookNextOctet(1);
-        if(!(next is (byte)'8' or (byte)'9' or KnownOctets.A or KnownOctets.B))
-            return false;
-        if(!KnownOctets.HexDigits.Contains(LookNextOctet(2)))
-            return false;
-        if(!KnownOctets.HexDigits.Contains(LookNextOctet(3)))
-            return false;
-        if(LookNextOctet(4) != KnownOctets.BackSlash)
-            return false;
-        if(LookNextOctet(5) != KnownOctets.u)
-            return false;
-        if(LookNextOctet(6) != KnownOctets.D)
-            return false;
-        if(!(LookNextOctet(7) is KnownOctets.C or KnownOctets.D or KnownOctets.E or KnownOctets.F))
-            return false;
-        if(!KnownOctets.HexDigits.Contains(LookNextOctet(8)))
-            return false;
-        if(!KnownOctets.HexDigits.Contains(LookNextOctet(9)))
-            return false;
-        AddChars(10);
+        readAny = false;
+        for(int i = 0; i < predicates.Length; i++)
+        {
+            if(isEndOfStream)
+                return false;
+            if(!predicates[i](codePoint))
+                break;
+            AddChar();
+            readAny = true;
+        }
         return true;
-        /*
-surrogate           = high-surrogate "\" %x75 low-surrogate
-high-surrogate      = "D" ("8"/"9"/"A"/"B") 2HEXDIG
-low-surrogate       = "D" ("C"/"D"/"E"/"F") 2HEXDIG
-HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
-         */
     }
+    bool IsHexDigit(int codePoint) => codePoint < 0x80 && KnownOctets.HexDigits.Contains((byte)codePoint);
+    /// <summary>
+    /// non-surrogate       = ((DIGIT / "A"/"B"/"C" / "E"/"F") 3HEXDIG) / ("D" %x30-37 2HEXDIG )
+    /// </summary>
+    /// <returns></returns>
 
-    static Utf8SmbolKind GetSymbolLengthKind(byte octet)
-    {
-        return symbolLengthTable[octet];
-    }
-    static Utf8SmbolKind GetSymbolLengthKindInternal(byte octet)
-    {
-        if(IsOneOctetSymbol(octet))
-            return Utf8SmbolKind.OneOctet;
-        if(IsTwoOctetFrstSymbol(octet))
-            return Utf8SmbolKind.TwoOctets;
-        if(IsThreeOctetFrstSymbol(octet))
-            return Utf8SmbolKind.ThreeOctets;
-        if(IsForeOctetFrstSymbol(octet))
-            return Utf8SmbolKind.ForeOctets;
-        return Utf8SmbolKind.Unexpectd;
-    }
-    static bool IsOneOctetSymbol(byte octet)
-    {
-        byte mask = 0b10000000;
-        return (mask & octet) == 0;
-    }
-    static bool IsTwoOctetFrstSymbol(byte octet)
-    {
-        byte mask = 0b1110_0000;
-        byte result = 0b1100_0000; // 110xxxxx
-        return (mask & octet) == result;
-    }
-    static bool IsThreeOctetFrstSymbol(byte octet)
-    {
-        byte mask = 0b1111_0000;
-        byte result = 0b1110_0000; // 1110xxxx
-        return (mask & octet) == result;
-    }
-    static bool IsForeOctetFrstSymbol(byte octet)
-    {
-        byte mask = 0b1111_1000;
-        byte result = 0b1111_0000; // 11110xxx
-        return (mask & octet) == result;
-    }
-    bool IsValidNotFistSymbolOctet(byte octet)
-    {
-        byte mask = 0b1100_0000;
-        byte result = 0b1000_0000; // 10xxxxxx
-        return (mask & octet) == result;
-    }
 
-    private int GetUnicodeSymbolCode(int firstOctet, int secondOctet, int thirdOctet, int forthOctet)
-    {
-        var result =
-            ((firstOctet & 0b0000_0111) << 18) |
-            ((secondOctet & 0b0011_1111) << 12) |
-            ((thirdOctet & 0b0011_1111) << 6) |
-            (forthOctet & 0b0011_1111);
-        return result;
-        // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-    }
+    /// <summary>
+    /// high-surrogate      = "D" ("8"/"9"/"A"/"B") 2HEXDIG
+    /// low-surrogate       = "D" ("C"/"D"/"E"/"F") 2HEXDIG
+    /// </summary>
+    /// <returns></returns>
 
-    private int GetUnicodeSymbolCode(int firstOctet, int secondOctet, int thirdOctet)
-    {
-
-        var result =
-            ((firstOctet & 0b0000_1111) << 12) |
-            ((secondOctet & 0b0011_1111) << 6) |
-            (thirdOctet & 0b0011_1111);
-        return result;
-        // 1110xxxx 10xxxxxx 10xxxxxx
-    }
-
-    private int GetUnicodeSymbolCode(int firstOctet, int secondOctet)
-    {
-        int result = firstOctet & 0b0001_1111;
-        result <<= 6;
-        result += (secondOctet & 0b0011_1111);
-        return result;
-        // 	110xxxxx 10xxxxxx
-    }
 
     bool Unescaped()
     {
