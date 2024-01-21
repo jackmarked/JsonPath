@@ -22,4 +22,4 @@ jobs:
         dotnet-version: 8.0.x
     - name: Test
       working-directory: ./sources
-      run: dotnet test JsonPath.sln -l "console;verbosity=detailed" --collect:"XPlat Code Coverage"
+      run: dotnet test -l "console;verbosity=detailed" --collect:"XPlat Code Coverage"
