@@ -65,6 +65,19 @@ static class KnownFunctions
         var match = regex.Match(input);
         return new(match.Success && match.ValueSpan.Length == input.Length);
     }
+    public static readonly FunctionDefinitionInstance Search = new("search", FunctionParameterType.Logical, SearchBody, [FunctionParameterType.Value, FunctionParameterType.Value]);
+    static ExpressionValue SearchBody(IReadOnlyList<ExpressionValue> arguments, FunctionExecutionContext context)
+    {
+        if(arguments is null or [] || arguments.Count < 2)
+            return ExpressionValue.Nothing;
+        var input = ConvetToString(arguments[0]);
+        var pattern = ConvetToString(arguments[1]);
+        if(input == null || pattern == null)
+            return ExpressionValue.LogicalFalse;
+        var regex = new Regex(pattern);
+        var match = regex.Match(input);
+        return new(match.Success);
+    }
     static string? ConvetToString(ExpressionValue value)
     {
         if(value.PrimitiveKind == PrimitiveKind.String)

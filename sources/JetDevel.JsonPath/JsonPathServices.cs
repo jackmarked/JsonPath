@@ -12,6 +12,7 @@ public sealed partial class JsonPathServices
         RegisterFunctionDefinition(KnownFunctions.Count);
         RegisterFunctionDefinition(KnownFunctions.Value);
         RegisterFunctionDefinition(KnownFunctions.Match);
+        RegisterFunctionDefinition(KnownFunctions.Search);
     }
     void RegisterFunctionDefinition(FunctionDefinition function)
     {

@@ -599,4 +599,39 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
 """;
         AssertQueryResult(source, """$[?match(@, "1974-05-..")]""", """ [] """);
     }
+    [Test]
+    public void FilterExpressionWithSearchFunctionMatch()
+    {
+        var source = """
+[
+  {
+    "author":"Dob",
+    "number":1
+  },
+  {
+    "author":"ZeleBoba",
+    "number":2
+  }
+]
+""";
+        AssertQueryResult(source, """$[?search(@.author, "[BR]ob")]""", """ [{"author":"ZeleBoba","number":2}] """);
+    }
+    [Test]
+    public void FilterExpressionWithSearchFunctionNotMatch()
+    {
+        var source = """
+[
+  {
+    "author":"Dob",
+    "number":1
+  },
+  {
+    "author":"ZeleBoba",
+    "number":2
+  }
+]
+""";
+        AssertQueryResult(source, """$[?search(@.author, "[WM]ob")]""", """ [] """);
+    }
+    //
 }
