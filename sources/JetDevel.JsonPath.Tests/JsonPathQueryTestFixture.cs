@@ -53,7 +53,8 @@ abstract class JsonPathQueryTestFixture
     {
         // Arrange.
         var document = JsonDocument.Parse(jsonSource);
-        var query = JsonPathQuery.FromSource(querySource);
+        var services = new JsonPathServices();
+        var query = services.FromSource(querySource);
         var expectedResult = JsonDocument.Parse(expectedResultSource);
 
         // Act.

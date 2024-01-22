@@ -1,28 +1,19 @@
-﻿using System.Text;
-using System.Text.Json;
-using JetDevel.JsonPath.CodeAnalysis;
+﻿using System.Text.Json;
 
 namespace JetDevel.JsonPath;
 
 public abstract class JsonPathQuery
 {
-    protected private JsonPathQuery() { }
-    public abstract JsonDocument Execute(JsonDocument document, CancellationToken cancellationToken = default);
-    public static JsonPathQuery FromSyntax(JsonPathQuerySyntax syntax)
+    protected JsonPathServices Services { get; }
+
+    protected private JsonPathQuery(JsonPathServices services)
     {
-        ArgumentNullException.ThrowIfNull(syntax);
-        return new SyntaxBasedJsonPathQuery(syntax);
+        Services = services;
     }
-    public static JsonPathQuery FromSource(string source)
+    public JsonDocument Execute(JsonDocument document, CancellationToken cancellationToken = default)
     {
-        var bytes = Encoding.UTF8.GetBytes(source);
-        return FromUtf8(bytes);
+        ArgumentNullException.ThrowIfNull(document);
+        return ExecuteCore(document, cancellationToken);
     }
-    public static JsonPathQuery FromUtf8(ReadOnlySpan<byte> utf8Bytes)
-    {
-        var charReader = new Utf8BytesUnicodeCharacterReader(utf8Bytes.ToArray());
-        var lexer = new Lexer(charReader);
-        Parser parser = new Parser(lexer);
-        return FromSyntax(parser.ParseQuery());
-    }
+    protected private abstract JsonDocument ExecuteCore(JsonDocument document, CancellationToken cancellationToken = default);
 }

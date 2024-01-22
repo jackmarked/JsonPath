@@ -6,10 +6,6 @@ namespace JetDevel.JsonPath.CodeAnalysis;
 public sealed partial class Lexer
 {
     readonly UnicodeCharacterReader source;
-    readonly static SearchValues<byte> blankSpaces = SearchValues.Create("\u0020\u0009\u000A\u000D"u8);
-
-    readonly static SearchValues<byte> digits1 = SearchValues.Create("123456789"u8);
-    readonly static SearchValues<byte> alpha = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"u8);
     Token nextToken;
     int codePoint;
     bool isEndOfStream;
@@ -41,7 +37,7 @@ public sealed partial class Lexer
     }
     void SkipWhiteSpaces()
     {
-        ReadAll(blankSpaces);
+        ReadAll(KnownCodes.BlankSpaces);
         buffer.Clear();
     }
     public Token GetNextToken()
@@ -96,14 +92,14 @@ public sealed partial class Lexer
         bool hasFraction = false;
         if(TryRead('.'))
         {
-            if(!ReadAny(KnownOctets.Digits))
+            if(!ReadAny(KnownCodes.Digits))
             {
                 token = CreateToken(SyntaxKind.Unknown);
                 return true;
             }
             hasFraction = true;
         }
-        var hasExponent = codePoint == 'e' || codePoint == 'E';
+        var hasExponent = codePoint is KnownCodes.e or KnownCodes.E;
         if(!hasExponent)
         {
             if(hasFraction)
@@ -112,7 +108,7 @@ public sealed partial class Lexer
         }
         AddChar();
         _ = TryRead('-') || TryRead('+');
-        if(ReadAny(KnownOctets.Digits))
+        if(ReadAny(KnownCodes.Digits))
             token = CreateToken(SyntaxKind.FloatNumberLiteral);
         else
             token = CreateToken(SyntaxKind.Unknown);
@@ -132,7 +128,7 @@ public sealed partial class Lexer
                 return CreateToken(SyntaxKind.IntegerNumberLiteral);
             case '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9':
                 AddChar();
-                ReadAll(KnownOctets.Digits);
+                ReadAll(KnownCodes.Digits);
                 if(TryReadDecimal(out var decimalToken))
                     return decimalToken;
                 return CreateToken(SyntaxKind.IntegerNumberLiteral);
@@ -143,9 +139,9 @@ public sealed partial class Lexer
                         return negativeDecimalToken;
                     else
                         return CreateToken(SyntaxKind.Unknown);
-                if(!TryRead(digits1))
+                if(!TryRead(KnownCodes.DigitsWitout0))
                     return CreateToken(SyntaxKind.Unknown);
-                ReadAll(KnownOctets.Digits);
+                ReadAll(KnownCodes.Digits);
                 return CreateToken(SyntaxKind.IntegerNumberLiteral);
             case '|':
                 AddChar();
@@ -181,7 +177,7 @@ public sealed partial class Lexer
                 return AddSymbolAndCreateToken(SyntaxKind.OpenParenToken);
             case ')':
                 return AddSymbolAndCreateToken(SyntaxKind.CloseParenToken);
-            case KnownOctets.RootIdentifier:
+            case KnownCodes.RootIdentifier:
                 return AddSymbolAndCreateToken(SyntaxKind.DollarMarkToken);
             case ':':
                 return AddSymbolAndCreateToken(SyntaxKind.ColonToken);
@@ -197,13 +193,13 @@ public sealed partial class Lexer
                 return AddSymbolAndCreateToken(SyntaxKind.QuestionMarkToken);
             case '@':
                 return AddSymbolAndCreateToken(SyntaxKind.AtToken);
-            case KnownOctets.SingleQuote:
-                return SingleQuotedStringLiteral();
-            case KnownOctets.DoubleQuote:
-                return DoubleQuotedStringLiteral();
-            case KnownOctets.Dot:
+            case KnownCodes.SingleQuote:
+                return StringLiteral(KnownCodes.SingleQuote, KnownCodes.DoubleQuote);
+            case KnownCodes.DoubleQuote:
+                return StringLiteral(KnownCodes.DoubleQuote, KnownCodes.SingleQuote);
+            case KnownCodes.Dot:
                 AddChar();
-                if(TryRead(KnownOctets.Dot))
+                if(TryRead(KnownCodes.Dot))
                     return CreateToken(SyntaxKind.DotDotToken);
                 return CreateToken(SyntaxKind.DotToken);
         }
@@ -219,96 +215,24 @@ public sealed partial class Lexer
         AddChar();
         return CreateToken(kind);
     }
-
-
-    /*
-name-selector       = string-literal
-
-string-literal      = %x22 *double-quoted %x22 /     ; "string"
-         %x27 *single-quoted %x27       ; 'string'
-
-
-
-ESC                 = %x5C                           ; \  backslash
-
-unescaped           = %x20-21 /                      ; see RFC 8259
-            ; omit 0x22 "
-         %x23-26 /
-            ; omit 0x27 '
-         %x28-5B /
-            ; omit 0x5C \
-         %x5D-D7FF /   ; skip surrogate code points
-         %xE000-10FFFF
-
-escapable           = %x62 / ; b BS backspace U+0008
-         %x66 / ; f FF form feed U+000C
-         %x6E / ; n LF line feed U+000A
-         %x72 / ; r CR carriage return U+000D
-         %x74 / ; t HT horizontal tab U+0009
-         "/"  / ; / slash (solidus) U+002F
-         "\"  / ; \ backslash (reverse solidus) U+005C
-         (%x75 hexchar) ;  uXXXX      U+XXXX
-
-hexchar             = non-surrogate /
-         (high-surrogate "\" %x75 low-surrogate)
-non-surrogate       = ((DIGIT / "A"/"B"/"C" / "E"/"F") 3HEXDIG) /
-          ("D" %x30-37 2HEXDIG )
-high-surrogate      = "D" ("8"/"9"/"A"/"B") 2HEXDIG
-low-surrogate       = "D" ("C"/"D"/"E"/"F") 2HEXDIG
-
-HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
-*/
-    void Expect(byte expectedOctet)
+    Token StringLiteral(int quoteCode, int unscapedQuoteCode)
     {
-        if(codePoint != expectedOctet)
-            throw new InvalidOperationException($"Expected {expectedOctet} but was {codePoint}.");
         AddChar();
-    }
-    Token SingleQuotedStringLiteral()
-    {
-        Expect(KnownOctets.SingleQuote);
         bool failed = false;
         while(!isEndOfStream)
-            if(!(Unescaped() || TryRead(KnownOctets.DoubleQuote) || EscapeSingleQuoteOrEscapable(out failed)) || failed)
-                break;
-        if(TryRead(KnownOctets.SingleQuote))
-            return CreateToken(SyntaxKind.StringLiteralToken);
-        return CreateToken(SyntaxKind.Unknown);
-        /*
-        single-quoted       = unescaped /
-                              %x22      /                    ; "
-                              ESC %x27  /                    ; \'
-                              ESC escapable
-         */
-    }
-    Token DoubleQuotedStringLiteral()
-    {
-        Expect(KnownOctets.DoubleQuote);
-        bool failed = false;
-        while(!isEndOfStream)
-            if(!(Unescaped() || TryRead(KnownOctets.SingleQuote) || EscapeDoubleQuoteOrEscapable(out failed)) || failed)
+            if(!(Unescaped() || TryRead(unscapedQuoteCode) || EscapeQuoteOrEscapable(quoteCode, out failed)) || failed)
                 break;
 
-        if(TryRead(KnownOctets.DoubleQuote))
+        if(TryRead(quoteCode))
             return CreateToken(SyntaxKind.StringLiteralToken);
         return CreateToken(SyntaxKind.Unknown);
     }
-    bool EscapeDoubleQuoteOrEscapable(out bool failed)
+    bool EscapeQuoteOrEscapable(int qouteCode, out bool failed)
     {
         failed = false;
-        if(!TryRead(KnownOctets.BackSlash))
+        if(!TryRead(KnownCodes.BackSlash))
             return false;
-        if(TryRead(KnownOctets.DoubleQuote))
-            return true;
-        failed = !Escapeble();
-        return true;
-    }
-    bool EscapeSingleQuoteOrEscapable(out bool failed)
-    {
-        failed = false;
-        if(!TryRead(KnownOctets.BackSlash))
-            return false;
-        if(TryRead(KnownOctets.SingleQuote))
+        if(TryRead(qouteCode))
             return true;
         failed = !Escapeble();
         return true;
@@ -319,29 +243,25 @@ HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
             return false;
         switch(codePoint)
         {
-            case KnownOctets.b:         // %x62 / ; b BS backspace U+0008
-            case KnownOctets.f:         // %x66 / ; f FF form feed U+000C
-            case KnownOctets.n:         // %x6E / ; n LF line feed U+000A
-            case KnownOctets.r:         // %x72 / ; r CR carriage return U+000D
-            case KnownOctets.t:         // %x74 / ; t HT horizontal tab U+0009
-            case KnownOctets.Slash:     // "/"  / ; / slash (solidus) U+002F
-            case KnownOctets.BackSlash: // "\"  / ; \ backslash (reverse solidus) U+005C
+            case KnownCodes.b:         // %x62 / ; b BS backspace U+0008
+            case KnownCodes.f:         // %x66 / ; f FF form feed U+000C
+            case KnownCodes.n:         // %x6E / ; n LF line feed U+000A
+            case KnownCodes.r:         // %x72 / ; r CR carriage return U+000D
+            case KnownCodes.t:         // %x74 / ; t HT horizontal tab U+0009
+            case KnownCodes.Slash:     // "/"  / ; / slash (solidus) U+002F
+            case KnownCodes.BackSlash: // "\"  / ; \ backslash (reverse solidus) U+005C
                 AddChar();
                 return true;
-            case KnownOctets.u:         // (%x75 hexchar) ;  uXXXX      U+XXXX
+            case KnownCodes.u:         // (%x75 hexchar) ;  uXXXX      U+XXXX
                 AddChar();
                 return HexChar();
         }
         return false;
     }
-    /// <summary>
-    /// hexchar = non-surrogate / (high-surrogate "\" %x75 low-surrogate)
-    /// </summary>
-    /// <returns></returns>
     private bool HexChar()
     {
         var nonSurrogate = TryReadSequence([
-            s1 => s1 < 0x80 && KnownOctets.HexDigitsWithoutD.Contains((byte)s1),
+            s1 => s1 < 0x80 && KnownCodes.HexDigitsWithoutD.Contains((byte)s1),
             IsHexDigit,
             IsHexDigit,
             IsHexDigit], out var readed);
@@ -350,21 +270,21 @@ HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
         if(readed)
             return false;
 
-        if(codePoint is not (KnownOctets.D or KnownOctets.d))
+        if(codePoint is not (KnownCodes.D or KnownCodes.d))
             return false;
         AddChar();
         return codePoint switch
         {
-            '0' or '1' or '2' or '3' or '4' or '5' or '6' or '7' =>TryReadSequence([
+            '0' or '1' or '2' or '3' or '4' or '5' or '6' or '7' => TryReadSequence([
                 IsHexDigit,
                 IsHexDigit], out _),
-            '8' or '9' or KnownOctets.A or KnownOctets.a or KnownOctets.B or KnownOctets.b => TryReadSequence([
+            '8' or '9' or KnownCodes.A or KnownCodes.a or KnownCodes.B or KnownCodes.b => TryReadSequence([
                 IsHexDigit,
                 IsHexDigit,
-                s6 => s6 is KnownOctets.BackSlash,
-                s7 => s7 is KnownOctets.u,
-                s8 => s8 is KnownOctets.D or 'd',
-                s9 => s9 is KnownOctets.C or KnownOctets.D or KnownOctets.E or KnownOctets.F or 'c' or 'd' or 'e' or 'f',
+                s6 => s6 is KnownCodes.BackSlash,
+                s7 => s7 is KnownCodes.u,
+                s8 => s8 is KnownCodes.D or 'd',
+                s9 => s9 is KnownCodes.C or KnownCodes.D or KnownCodes.E or KnownCodes.F or 'c' or 'd' or 'e' or 'f',
                 IsHexDigit,
                 IsHexDigit], out _),
             _ => false,
@@ -384,18 +304,7 @@ HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
         }
         return true;
     }
-    bool IsHexDigit(int codePoint) => codePoint < 0x80 && KnownOctets.HexDigits.Contains((byte)codePoint);
-    /// <summary>
-    /// non-surrogate       = ((DIGIT / "A"/"B"/"C" / "E"/"F") 3HEXDIG) / ("D" %x30-37 2HEXDIG )
-    /// </summary>
-    /// <returns></returns>
-
-
-    /// <summary>
-    /// high-surrogate      = "D" ("8"/"9"/"A"/"B") 2HEXDIG
-    /// low-surrogate       = "D" ("C"/"D"/"E"/"F") 2HEXDIG
-    /// </summary>
-    /// <returns></returns>
+    bool IsHexDigit(int codePoint) => codePoint < 0x80 && KnownCodes.HexDigits.Contains((byte)codePoint);
 
 
     bool Unescaped()
@@ -413,54 +322,26 @@ HEXDIG              = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
             case >= 0xE000 and <= 0x10FFFF:
                 AddChar();
                 return true;
+            default: return false;
         }
-        return false;
-        /*
-unescaped           = %x20-21 /                      ; see RFC 8259
-                         ; omit 0x22 "
-                      %x23-26 /
-                         ; omit 0x27 '
-                      %x28-5B /
-                         ; omit 0x5C \
-                      %x5D-D7FF /   ; skip surrogate code points
-                      %xE000-10FFFF
-         */
     }
-    /*
-
-int                 = "0" /
-         (["-"] DIGIT1 *DIGIT)      ; - optional
-           DIGIT1              = %x31-39                    ; 1-9 non-zero digit
-
-*/
     bool IsNameFirst(int ch)
     {
         if(ch < 0x80)
         {
-            if(alpha.Contains((byte)ch))
+            if(KnownCodes.Alpha.Contains((byte)ch))
                 return true;
             return ch == '_';
         }
-        if(/*codePoint >= 0x80 &&*/ codePoint <= 0xD7FF)
+        if(codePoint <= 0xD7FF)
             return true;
         return codePoint >= 0xE000 && codePoint <= 0x10FFFF;
     }
 
     bool IsNameChar(int ch)
     {
-        return IsNameFirst(ch) || (ch < 0x80 && KnownOctets.Digits.Contains((byte)ch));
+        return IsNameFirst(ch) || (ch < 0x80 && KnownCodes.Digits.Contains((byte)ch));
     }
-    /*
-    member-name-shorthand = name-first *name-char
-    name-first          = ALPHA /
-                          "_"   /
-                          %x80-D7FF /   ; skip surrogate code points
-                          %xE000-10FFFF
-    name-char           = DIGIT / name-first
-
-    DIGIT               = %x30-39              ; 0-9
-    ALPHA               = %x41-5A / %x61-7A    ; A-Z / a-z
-             */
     internal Token LookAhead()
     {
         return nextToken;

@@ -6,16 +6,17 @@ namespace JetDevel.JsonPath;
 sealed partial class SyntaxBasedJsonPathQuery: JsonPathQuery
 {
     readonly JsonPathQuerySyntax jsonPathQuerySyntax;
-    internal SyntaxBasedJsonPathQuery(JsonPathQuerySyntax jsonPathQuerySyntax)
+
+    internal SyntaxBasedJsonPathQuery(JsonPathQuerySyntax jsonPathQuerySyntax, JsonPathServices services) : base(services)
     {
         this.jsonPathQuerySyntax = jsonPathQuerySyntax;
     }
-    public override JsonDocument Execute(JsonDocument document, CancellationToken cancellationToken = default)
+    private protected override JsonDocument ExecuteCore(JsonDocument document, CancellationToken cancellationToken = default)
     {
         if(jsonPathQuerySyntax.Segments.Count < 1)
             return JsonSerializer.SerializeToDocument(new[] { document });
         var root = document.RootElement;
-        var context = new QueryContext(root, cancellationToken);
+        var context = new QueryContext(root, Services, cancellationToken);
         var result = ProcSegments(root, jsonPathQuerySyntax.Segments, context);
         return JsonSerializer.SerializeToDocument(result);
     }
@@ -84,7 +85,7 @@ sealed partial class SyntaxBasedJsonPathQuery: JsonPathQuery
         var enumerator = descendant ? EnumerateDescendant(element) : EnumerateCurrent(element);
         foreach(var current in enumerator)
         {
-            var evaluationContext = new ExpressionEvaluationContext(context.Root, current, context.CancellationToken);
+            var evaluationContext = new ExpressionEvaluationContext(context.Root, current, context.Services, context.CancellationToken);
             bool isSelected = EvaluateLogicalExpression(expression, evaluationContext);
             if(isSelected)
                 result.Add(current);

@@ -4,11 +4,16 @@ namespace JetDevel.JsonPath.CodeAnalysis;
 
 partial class Lexer
 {
-    static class KnownOctets
+    static class KnownCodes
     {
+        public static readonly SearchValues<byte> BlankSpaces = SearchValues.Create("\u0020\u0009\u000A\u000D"u8);
         public static readonly SearchValues<byte> HexDigits = SearchValues.Create("0123456789ABCDEFabcdef"u8);
         public static readonly SearchValues<byte> HexDigitsWithoutD = SearchValues.Create("0123456789ABCEFabcef"u8);
         public static readonly SearchValues<byte> Digits = SearchValues.Create("0123456789"u8);
+        public static readonly SearchValues<byte> DigitsWitout0 = SearchValues.Create("123456789"u8);
+        public static readonly SearchValues<byte> Alpha = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"u8);
+
+
         /// <summary>
         /// Dollar sign ('$'). 
         /// </summary>
@@ -81,6 +86,10 @@ partial class Lexer
         /// Latin uppercase letter E ('E').
         /// </summary>
         public const byte E = (byte)'E';
+        /// <summary>
+        /// Latin lowercase letter e ('e').
+        /// </summary>
+        public const byte e = (byte)'e';
         /// <summary>
         /// Latin uppercase letter F ('F').
         /// </summary>

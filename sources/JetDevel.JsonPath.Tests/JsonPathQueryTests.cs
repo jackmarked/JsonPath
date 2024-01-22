@@ -39,10 +39,11 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
    "b": 7
 }
 """;
+        var services = new JsonPathServices();
         var expectedResult = JsonDocument.Parse("[1,7]");
         var document = JsonDocument.Parse(json);
         var pathQuerySource = "$.*";
-        var query = JsonPathQuery.FromSource(pathQuerySource);
+        var query = services.FromSource(pathQuerySource);
 
         // Act.
         var queryResult = query.Execute(document);
@@ -63,7 +64,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         var expectedResult = JsonDocument.Parse("[4,7]");
         var document = JsonDocument.Parse(json);
         var pathQuerySource = "$.b.*";
-        var query = JsonPathQuery.FromSource(pathQuerySource);
+        var services = new JsonPathServices();
+        var query = services.FromSource(pathQuerySource);
 
         // Act.
         var queryResult = query.Execute(document);
@@ -84,7 +86,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         var expectedResult = JsonDocument.Parse("[2,4]");
         var document = JsonDocument.Parse(json);
         var pathQuerySource = "$.*[1]";
-        var query = JsonPathQuery.FromSource(pathQuerySource);
+        var services = new JsonPathServices();
+        var query = services.FromSource(pathQuerySource);
 
         // Act.
         var queryResult = query.Execute(document);
@@ -105,7 +108,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         var expectedResult = JsonDocument.Parse("[2, 4, 7]");
         var document = JsonDocument.Parse(json);
         var pathQuerySource = "$.*[1, 2]";
-        var query = JsonPathQuery.FromSource(pathQuerySource);
+        var services = new JsonPathServices();
+        var query = services.FromSource(pathQuerySource);
 
         // Act.
         var queryResult = query.Execute(document);
@@ -126,7 +130,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         var expectedResult = JsonDocument.Parse("[2, 7]");
         var document = JsonDocument.Parse(json);
         var pathQuerySource = "$.*[-1]";
-        var query = JsonPathQuery.FromSource(pathQuerySource);
+        var services = new JsonPathServices();
+        var query = services.FromSource(pathQuerySource);
 
         // Act.
         var queryResult = query.Execute(document);
@@ -144,7 +149,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         var expectedResult = JsonDocument.Parse("[2, 4]");
         var document = JsonDocument.Parse(json);
         var pathQuerySource = "$[1, 2, 3]";
-        var query = JsonPathQuery.FromSource(pathQuerySource);
+        var services = new JsonPathServices();
+        var query = services.FromSource(pathQuerySource);
 
         // Act.
         var queryResult = query.Execute(document);
@@ -156,7 +162,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
     public void Execte_WithAllOnOutOfoundIndexesSegmentOnArray_ReturnsValue()
     {
         // Arrange.
-        var query = JsonPathQuery.FromSource("$[-10, 7, 3]");
+        var services = new JsonPathServices();
+        var query = services.FromSource("$[-10, 7, 3]");
         var document = JsonDocument.Parse("""
 [ 7, 2, 4]
 """);
@@ -172,7 +179,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
     public void Execte_WithAllOnOutOfoundIndexesSegmentOnObject_ReturnsEmptyArray()
     {
         // Arrange.
-        var query = JsonPathQuery.FromSource("$[-10, 7, 3]");
+        var services = new JsonPathServices();
+        var query = services.FromSource("$[-10, 7, 3]");
         var document = JsonDocument.Parse("""
 {"a":7}
 """);
@@ -188,7 +196,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
     public void Execte_IndexesSegmentOnValue_ReturnsEmptyArray()
     {
         // Arrange.
-        var query = JsonPathQuery.FromSource("$[-10, 7, 3]");
+        var services = new JsonPathServices();
+        var query = services.FromSource("$[-10, 7, 3]");
         var document = JsonDocument.Parse("""
 "a"
 """);
@@ -212,7 +221,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
   }
 }
 """);
-        var query = JsonPathQuery.FromSource("$.a.b.c");
+        var services = new JsonPathServices();
+        var query = services.FromSource("$.a.b.c");
         var expectedResult = JsonDocument.Parse("[]");
 
         // Act.
@@ -228,7 +238,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         var document = JsonDocument.Parse("""
 [1, 2, 3, 4, 5]
 """);
-        var query = JsonPathQuery.FromSource("$[::]");
+        var services = new JsonPathServices();
+        var query = services.FromSource("$[::]");
         var expectedResult = JsonDocument.Parse("[1, 2, 3, 4, 5]");
 
         // Act.
@@ -244,7 +255,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         var document = JsonDocument.Parse("""
 [1, 2, 3, 4, 5]
 """);
-        var query = JsonPathQuery.FromSource("$[:2]");
+        var services = new JsonPathServices();
+        var query = services.FromSource("$[:2]");
         var expectedResult = JsonDocument.Parse("[1, 2]");
 
         // Act.
@@ -260,7 +272,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         var document = JsonDocument.Parse("""
 [1, 2, 3, 4, 5]
 """);
-        var query = JsonPathQuery.FromSource("$[::-1]");
+        var services = new JsonPathServices();
+        var query = services.FromSource("$[::-1]");
         var expectedResult = JsonDocument.Parse("[5, 4, 3, 2, 1]");
 
         // Act.
@@ -278,7 +291,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
             try
             {
                 var source = "$" + (char)i;
-                var query = JsonPathQuery.FromSource(source);
+                var services = new JsonPathServices();
+                var query = services.FromSource(source);
                 if(query != null)
                     list.Add(source);
             }
@@ -289,7 +303,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
                 try
                 {
                     var source = "$" + (char)i + (char)j;
-                    var query = JsonPathQuery.FromSource(source);
+                    var services = new JsonPathServices();
+                    var query = services.FromSource(source);
                     if(query != null)
                         list.Add(source);
                 }
@@ -302,7 +317,8 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
                     try
                     {
                         var source = "$" + (char)i + (char)j + (char)k;
-                        var query = JsonPathQuery.FromSource(source);
+                        var services = new JsonPathServices();
+                        var query = services.FromSource(source);
                         if(query != null)
                             list.Add(source);
                     }
@@ -559,5 +575,28 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertQueryResult(source, "$.o[?'3' == '2' || 4 == 4].name", """["Bill", "Fill", "Mill"]""");
         AssertQueryResult(source, "$.o[?'3' == '3' || 4 == 3].name", @"[""Bill"", ""Fill"", ""Mill""]");
         AssertQueryResult(source, "$.o[?'3' == '4' || 4 == 5].name", @"[]");
+    }
+    [Test]
+    public void FilterExpressionWithMatchFunction()
+    {
+        var source = """
+[
+  "1974-05-11",
+  [1,2,3,4],
+  [1,2,3]
+]
+""";
+        AssertQueryResult(source, """$[?match(@, "1974-05-..")]""", """ ["1974-05-11"] """);
+    }
+    [Test]
+    public void FilterExpressionWithMatchFunctionNotMatch()
+    {
+        var source = """
+[
+  "1974-07-11",
+  [1,2,3]
+]
+""";
+        AssertQueryResult(source, """$[?match(@, "1974-05-..")]""", """ [] """);
     }
 }

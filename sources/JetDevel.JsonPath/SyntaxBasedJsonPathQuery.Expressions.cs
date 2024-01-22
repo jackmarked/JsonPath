@@ -52,37 +52,62 @@ partial class SyntaxBasedJsonPathQuery
 
         return new ExpressionValue();
     }
-    static ExpressionValue EvaluateFunction(FunctionExpressionSyntax function, ExpressionEvaluationContext context)
+    static ExpressionValue EvaluateFunction(FunctionExpressionSyntax functionxpression, ExpressionEvaluationContext context)
     {
-        if(function.Name != "length")
+        var function = context.Services.GetFunction(functionxpression.Name);
+        if(function == null)
             return ExpressionValue.Nothing;
-        var args = function.Arguments;
-        if(args.Count < 1)
+        IReadOnlyList<ExpressionValue> argments = PepareArguments(functionxpression.Arguments, function.Parameters, context);
+
+        return function.Execute(argments, new FunctionExecutionContext(context.CancellationToken));
+    }
+
+    static ExpressionValue PrepareArgumnt(IReadOnlyList<ExpressionSyntax> arguments, FunctionParameterType parameterType, int parameteIndex, ExpressionEvaluationContext context)
+    {
+        var argument = arguments.Count > parameteIndex ? arguments[parameteIndex] : null;
+        if(argument == null)
             return ExpressionValue.Nothing;
-        var expressionValue = EvaluateExpression(args[0], context);
-        if(expressionValue.PrimitiveKind == PrimitiveKind.String)
-            return new(expressionValue.AsString().Length);
-        if(expressionValue.ValueType == ValueType.Node)
+        var value = EvaluateExpression(argument, context);
+        switch(parameterType)
         {
-            var jsonElement = expressionValue.AsJson();
-            if(jsonElement.ValueKind == JsonValueKind.Array)
-                return new(jsonElement.GetArrayLength());
-            if(jsonElement.ValueKind == JsonValueKind.String)
-                return new(jsonElement.GetString()!.Length);
-        }
-        if(expressionValue.ValueType == ValueType.Nodes)
-        {
-            var jsonNodes = expressionValue.AsNodes();
-            if(jsonNodes.Count < 1)
+            case FunctionParameterType.Logical:
+                if(value.PrimitiveKind == PrimitiveKind.Boolean)
+                    return value;
+                if(value.ValueType == ValueType.Nodes)
+                {
+                    var nodes = value.AsNodes();
+                    return new(nodes.Count > 0);
+                }
                 return ExpressionValue.Nothing;
-            var jsonElement = jsonNodes[0];
-            if(jsonElement.ValueKind == JsonValueKind.Array)
-                return new(jsonElement.GetArrayLength());
-            if(jsonElement.ValueKind == JsonValueKind.String)
-                return new(jsonElement.GetString()!.Length);
+            case FunctionParameterType.Value:
+                if(value.ValueType == ValueType.Node || value.ValueType == ValueType.PrimitiveValue)
+                    return value;
+                if(value.ValueType == ValueType.Nodes)
+                {
+                    var nodes = value.AsNodes();
+                    if(nodes.Count == 1)
+                        return new(nodes[0]);
+                }
+                return ExpressionValue.Nothing;
+            case FunctionParameterType.Nodes:
+                if(value.ValueType == ValueType.Nodes)
+                    return value;
+                return ExpressionValue.Nothing;
         }
         return ExpressionValue.Nothing;
     }
+    private static IReadOnlyList<ExpressionValue> PepareArguments(IReadOnlyList<ExpressionSyntax> arguments, IReadOnlyList<FunctionParameterType> parameters, ExpressionEvaluationContext context)
+    {
+        var result = new List<ExpressionValue>(parameters.Count);
+        for(int i = 0; i < parameters.Count; i++)
+        {
+            var argument = PrepareArgumnt(arguments, parameters[i], i, context);
+            result.Add(argument);
+            context.CancellationToken.ThrowIfCancellationRequested();
+        }
+        return result;
+    }
+
     static ExpressionValue EvaluateJson(List<JsonElement> nodeList)
     {
         if(nodeList.Count == 0)
@@ -113,7 +138,7 @@ partial class SyntaxBasedJsonPathQuery
     static ExpressionValue EvaluateQuery(IReadOnlyList<SegmentSyntax> segments, QueryType queryType, bool isSingular, ExpressionEvaluationContext context)
     {
         var startNode = queryType == QueryType.RootNode ? context.Root : context.Current;
-        var result = ProcSegments(startNode, segments, new QueryContext(context.Root, context.CancellationToken));
+        var result = ProcSegments(startNode, segments, new QueryContext(context.Root, context.Services, context.CancellationToken));
         if(isSingular && result.Count == 1)
             return new ExpressionValue(result[0]);
         return EvaluateJson(result);
