@@ -7,8 +7,6 @@ public sealed class NameSelectorSyntax: SelectorSyntax
         Name = name;
     }
     public string Name { get; }
-    public override string ToString()
-    {
-        return Name;
-    }
+    public override string ToString() => Name;
+    public override SyntaxKind Kind => SyntaxKind.NameSelector;
 }

@@ -7,7 +7,6 @@ public abstract class LiteralExpressionSyntax<TValue>: ExpressionSyntax
         Value = value;
     }
     public TValue Value { get; }
-    public override SyntaxKind Kind => SyntaxKind.Unknown;
     public override string ToString()
     {
         return (Value is null ? "null" : Value.ToString()) ?? string.Empty;

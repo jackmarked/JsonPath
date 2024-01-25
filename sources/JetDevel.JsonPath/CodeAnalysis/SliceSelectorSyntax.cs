@@ -14,4 +14,5 @@ public sealed class SliceSelectorSyntax: SelectorSyntax
     public long? Start { get; }
     public long? End { get; }
     public long? Step { get; }
+    public override SyntaxKind Kind => SyntaxKind.SliceSelector;
 }

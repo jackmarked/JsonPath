@@ -1,8 +1,8 @@
 ﻿namespace JetDevel.JsonPath.CodeAnalysis;
 
-public class IndexSelectorSyntax: SelectorSyntax
+public sealed class IndexSelectorSyntax: SelectorSyntax
 {
-    public IndexSelectorSyntax(string text)
+    internal IndexSelectorSyntax(string text)
     {
         Index = int.Parse(text);
     }
@@ -11,4 +11,5 @@ public class IndexSelectorSyntax: SelectorSyntax
     {
         return Index.ToString();
     }
+    public override SyntaxKind Kind => SyntaxKind.IndexSelector;
 }

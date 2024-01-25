@@ -2,7 +2,7 @@
 
 public sealed class WildcardSelectorSyntax: SelectorSyntax
 {
-    internal WildcardSelectorSyntax()
-    {
-    }
+    internal WildcardSelectorSyntax() { }
+    public override SyntaxKind Kind => SyntaxKind.WildcardSelector;
+    public override string ToString() => "*";
 }

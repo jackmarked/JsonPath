@@ -12,6 +12,6 @@ public sealed class DescendantSegmentSyntax: SegmentSyntax
     }
     public SelectorSyntax? Selector { get; }
     public BracketedSelectionSegmentSyntax? SelectionSegmentSyntax { get; }
-    public override SyntaxKind Kind => SyntaxKind.Unknown;
-    public override string ToString() => ".." + Selector;
+    public override SyntaxKind Kind => SyntaxKind.DescendantSegment;
+    public override string ToString() => ".." + ((Selector as JsonPathSyntaxNode) ?? SelectionSegmentSyntax);
 }

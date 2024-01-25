@@ -11,4 +11,5 @@ public sealed class BracketedSelectionSegmentSyntax: BaseChildSegmentSyntax
     {
         return "[" + string.Join(" ", Selectors) + "]";
     }
+    public override SyntaxKind Kind => SyntaxKind.BracketedSelection;
 }

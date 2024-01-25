@@ -1,4 +1,6 @@
-﻿namespace JetDevel.JsonPath;
+﻿using System.Globalization;
+
+namespace JetDevel.JsonPath;
 public sealed class Utf8BytesUnicodeCharacterReader: UnicodeCharacterReader
 {
     readonly byte[] bytes;

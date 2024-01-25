@@ -32,12 +32,23 @@ public sealed partial class JsonPathServices
         var bytes = Encoding.UTF8.GetBytes(source);
         return FromUtf8(bytes);
     }
+    public bool TryParse(ReadOnlySpan<byte> utf8Bytes, out JsonPathQuerySyntax? query)
+    {
+        var charReader = new Utf8BytesUnicodeCharacterReader(utf8Bytes.ToArray());
+        var lexer = new Lexer(charReader);
+        Parser parser = new Parser(lexer);
+        var result = parser.ParseQuery();
+        query = result.JsonPathQuery;
+        if(query == null)
+            return false;
+        return true;
+    }
     public JsonPathQuery FromUtf8(ReadOnlySpan<byte> utf8Bytes)
     {
         var charReader = new Utf8BytesUnicodeCharacterReader(utf8Bytes.ToArray());
         var lexer = new Lexer(charReader);
         Parser parser = new Parser(lexer);
-        return FromSyntax(parser.ParseQuery());
+        return FromSyntax(parser.ParseQuery().JsonPathQuery!);
     }
     public JsonPathQuery FromSyntax(JsonPathQuerySyntax syntax)
     {

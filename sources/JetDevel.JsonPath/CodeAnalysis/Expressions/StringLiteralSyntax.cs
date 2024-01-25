@@ -2,12 +2,9 @@
 
 public sealed class StringLiteralSyntax: LiteralExpressionSyntax<string>
 {
-    internal StringLiteralSyntax(Token readToken) : base(SyntaxFacts.GetStringLiteralValue(readToken.Text))
+    internal StringLiteralSyntax(Token token) : base(SyntaxFacts.GetStringLiteralValue(token.Text))
     {
     }
     public override SyntaxKind Kind => SyntaxKind.StringLiteral;
-    public override string ToString()
-    {
-        return @"""" + Value + @"""";
-    }
+    public override string ToString() => @"""" + Value + @"""";
 }

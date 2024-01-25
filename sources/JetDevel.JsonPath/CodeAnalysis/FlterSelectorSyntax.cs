@@ -7,6 +7,7 @@ public sealed class FlterSelectorSyntax: SelectorSyntax
         Expression = expression;
     }
     public ExpressionSyntax Expression { get; }
+    public override SyntaxKind Kind => SyntaxKind.FilterSelector;
     public override string ToString()
     {
         return "?" + Expression?.ToString();

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
+using System.Text;
 using System.Text.Json;
+using System.Text.Unicode;
 
 namespace JetDevel.JsonPath.Tests;
 
@@ -282,19 +284,18 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         // Assert.
         AssertJsonEquivalent(expectedResult, queryResult);
     }
-    [Test, Ignore("")]
+    [Test, Explicit]
     public void Execte_()
     {
         var list = new ConcurrentBag<string>();
+        var services = new JsonPathServices();
         // Arrange.
         for(int i = 0; i < 128; i++)
             try
             {
-                var source = "$" + (char)i;
-                var services = new JsonPathServices();
-                var query = services.FromSource(source);
-                if(query != null)
-                    list.Add(source);
+                ReadOnlySpan<byte> source = [(byte)'$', (byte)i];
+                if(services.TryParse(source, out _))
+                    list.Add(Encoding.UTF8.GetString(source));
             }
             catch { }
         for(int i = 0; i < 128; i++)
@@ -302,11 +303,10 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
             {
                 try
                 {
-                    var source = "$" + (char)i + (char)j;
-                    var services = new JsonPathServices();
-                    var query = services.FromSource(source);
-                    if(query != null)
-                        list.Add(source);
+                    ReadOnlySpan<byte> source = [(byte)'$', (byte)i, (byte)j];
+
+                    if(services.TryParse(source, out _))
+                        list.Add(Encoding.UTF8.GetString(source));
                 }
                 catch { }
             });
@@ -316,14 +316,26 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
                 {
                     try
                     {
-                        var source = "$" + (char)i + (char)j + (char)k;
-                        var services = new JsonPathServices();
-                        var query = services.FromSource(source);
-                        if(query != null)
-                            list.Add(source);
+                        ReadOnlySpan<byte> source = [(byte)'$', (byte)i, (byte)j, (byte)k];
+                        if(services.TryParse(source, out _))
+                            list.Add(Encoding.UTF8.GetString(source));
                     }
                     catch { }
                 });
+        for(int i = 0; i < 128; i++)
+            for(int j = 0; j < 128; j++)
+                for(int k = 0; k < 128; k++)
+                Parallel.For(0, 128, l =>
+                {
+                    try
+                    {
+                        ReadOnlySpan<byte> source = [(byte)'$', (byte)i, (byte)j, (byte)k, (byte)l];
+                        if(services.TryParse(source, out _))
+                            list.Add(Encoding.UTF8.GetString(source));
+                    }
+                    catch { }
+                });
+        Console.WriteLine(list.ToArray());
     }
     [Test]
     public void Execte_DescendantSegment_ReturnsEmptyArray()
@@ -403,7 +415,51 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertQueryResult(source, "$..book[-1]", @"[{ ""category"": ""fiction"",""author"": ""J. R. R. Tolkien"",""title"": ""The Lord of the Rings"",""isbn"": ""0-395-19395-8"",""price"": 22.99}]");
         AssertQueryResult(source, "$..book[0,1].author", @"[""Nigel Rees"",""Evelyn Waugh""]");
         AssertQueryResult(source, "$..book[:2].author", @"[""Nigel Rees"",""Evelyn Waugh""]");
+    }
+    [Test]
+    public void RfcStartSamples()
+    {
+        var source = """
+{ "store": {
+    "book": [
+      { "category": "reference",
+        "author": "Nigel Rees",
+        "title": "Sayings of the Century",
+        "price": 8.95
+      },
+      { "category": "fiction",
+        "author": "Evelyn Waugh",
+        "title": "Sword of Honour",
+        "price": 12.99
+      },
+      { "category": "fiction",
+        "author": "Herman Melville",
+        "title": "Moby Dick",
+        "isbn": "0-553-21311-3",
+        "price": 8.99
+      },
+      { "category": "fiction",
+        "author": "J. R. R. Tolkien",
+        "title": "The Lord of the Rings",
+        "isbn": "0-395-19395-8",
+        "price": 22.99
+      }
+    ],
+    "bicycle": {
+      "color": "red",
+      "price": 399
+    }
+  }
+}
+""";
+        AssertQueryResult(source, "$.store.book[*].author", @"[""Nigel Rees"",""Evelyn Waugh"",""Herman Melville"",""J. R. R. Tolkien""]");
+        AssertQueryResult(source, "$..author", @"[""Nigel Rees"",""Evelyn Waugh"",""Herman Melville"",""J. R. R. Tolkien""]");
 
+        AssertQueryResult(source, "$..book[2].author", @"[""Herman Melville""]");
+        AssertQueryResult(source, "$..book[2].publisher", @"[]");
+        AssertQueryResult(source, "$..book[-1]", @"[{ ""category"": ""fiction"",""author"": ""J. R. R. Tolkien"",""title"": ""The Lord of the Rings"",""isbn"": ""0-395-19395-8"",""price"": 22.99}]");
+        AssertQueryResult(source, "$..book[0,1].author", @"[""Nigel Rees"",""Evelyn Waugh""]");
+        AssertQueryResult(source, "$..book[:2].author", @"[""Nigel Rees"",""Evelyn Waugh""]");
     }
     [Test]
     public void RfcSliceSamples()

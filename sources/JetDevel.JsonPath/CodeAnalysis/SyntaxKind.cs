@@ -146,5 +146,15 @@ public enum SyntaxKind: ulong
     FunctionExpression = 40,
     FilterQueryExpression = 41,
     SingularQueryExpression = 42,
-    StringLiteral = 43
+    StringLiteral = 43,
+    BooleanLiteral = 44,
+    BracketedSelection = 45,
+    ChildSegment = 46,
+    DescendantSegment = 47,
+    FilterSelector = 48,
+    IndexSelector = 49,
+    MemberNameShorthandSelector = 50,
+    NameSelector = 51,
+    SliceSelector = 52,
+    WildcardSelector = 53
 }

@@ -3,10 +3,6 @@ namespace JetDevel.JsonPath.CodeAnalysis;
 
 partial class Parser
 {
-    ExpressionSyntax LogicalExpression()
-    {
-        return LogicalOrExpression();
-    }
     ExpressionSyntax LogicalOrExpression()
     { // logical-or-expr     = logical-and-expr *(S "||" S logical-and-expr)
         var left = LogicalAndExpression();
@@ -63,16 +59,15 @@ partial class Parser
             else
                 left = new FilterQueryExpressionSyntax(queryType, segments);
         }
-        if(left == null)
-            left = Literal();
+        left ??= Literal();
         if(!IsComparsion(nextToken))
             return left;
         var operatorToken = nextToken;
         Expect(IsComparsion);
         var right = Comparable();
-        return new BinaryExpressionSyntax(left, right, operatorToken);
+        return new BinaryExpressionSyntax(left, right!, operatorToken);
     }
-    ExpressionSyntax Comparable()
+    ExpressionSyntax? Comparable()
     {
         var lieral = Literal(true);
         if(lieral != null)
@@ -89,7 +84,8 @@ partial class Parser
             Expect(SyntaxKind.AtToken);
             return new SingularQueryExpressionSyntax(QueryType.CurentNode, Segments());
         }
-        throw new InvalidOperationException("Invalid comparable.");
+        AddErrorAndReadToken("Invalid comparable.");
+        return null;
     }
     ExpressionSyntax Literal(bool canReturnNull = false)
     {
@@ -118,12 +114,13 @@ partial class Parser
         }
         if(canReturnNull)
             return null!;
-        throw new InvalidOperationException("Invalid literal.");
+        AddErrorAndReadToken("Invalid literal.");
+        return null!;
     }
     void Expect(Func<Token, bool> predicate)
     {
         if(!predicate(nextToken))
-            throw new InvalidOperationException("Unknown token.");
+            AddError($"Unexpected token '{nextToken.Text}'.");
         ReadToken();
     }
     private bool IsComparsion(Token token)
@@ -155,7 +152,7 @@ partial class Parser
     ParenthesizedExpressionSyntax ParenthesizedExpression()
     {
         Expect(SyntaxKind.OpenParenToken);
-        var expression = LogicalExpression();
+        var expression = LogicalOrExpression();
         Expect(SyntaxKind.CloseParenToken);
         return new(expression);
     }
@@ -173,10 +170,9 @@ partial class Parser
     private IReadOnlyList<ExpressionSyntax> Arguments()
     {
         var result = new List<ExpressionSyntax>();
-        var argument = Argument();
-        result.Add(argument);
-        while(TryReadToken(SyntaxKind.CommaToken))
+        do
             result.Add(Argument());
+        while(TryReadToken(SyntaxKind.CommaToken));
         return result.AsReadOnly();
     }
     ExpressionSyntax Argument()
@@ -189,64 +185,6 @@ partial class Parser
         var operatorToken = nextToken;
         Expect(IsComparsion);
         var right = Comparable();
-        return new BinaryExpressionSyntax(left, right, operatorToken);
+        return new BinaryExpressionSyntax(left, right!, operatorToken);
     }
-    /*
-
-    logical-expr        = logical-or-expr
-    logical-or-expr     = logical-and-expr *(S "||" S logical-and-expr)
-                            ; disjunction
-                            ; binds less tightly than conjunction
-    logical-and-expr    = basic-expr *(S "&&" S basic-expr)
-                            ; conjunction
-                            ; binds more tightly than disjunction
-
-    basic-expr          = paren-expr /
-                          comparison-expr /
-                          test-expr
-
-    paren-expr          = [logical-not-op S] "(" S logical-expr S ")"
-                                            ; parenthesized expression
-    logical-not-op      = "!"               ; logical NOT operator
-
-
-    test-expr           = [logical-not-op S]
-                 (filter-query / ; existence/non-existence
-                  function-expr) ; LogicalType or NodesType
-    filter-query        = rel-query / jsonpath-query
-    rel-query           = current-node-identifier segments
-    current-node-identifier = "@"
-
-    comparison-expr     = comparable S comparison-op S comparable
-    literal             = number / string-literal /
-                  true / false / null
-    comparable          = literal /
-                  singular-query / ; singular query value
-                  function-expr    ; ValueType
-    comparison-op       = "==" / "!=" /
-                          "<=" / ">=" /
-                          "<"  / ">"
-
-    singular-query      = rel-singular-query / abs-singular-query
-    rel-singular-query  = current-node-identifier singular-query-segments
-    abs-singular-query  = root-identifier singular-query-segments
-    singular-query-segments = *(S (name-segment / index-segment))
-    name-segment        = ("[" name-selector "]") /
-                         ("." member-name-shorthand)
-    index-segment       = "[" index-selector "]"
-
-
-
-    function-name       = function-name-first *function-name-char
-    function-name-first = LCALPHA
-    function-name-char  = function-name-first / "_" / DIGIT
-    LCALPHA             = %x61-7A  ; "a".."z"
-
-    function-expr       = function-name "(" S [function-argument
-                     *(S "," S function-argument)] S ")"
-    function-argument   = literal /
-                  filter-query / ; (includes singular-query)
-                  logical-expr /
-                  function-expr
-     */
 }

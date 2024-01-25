@@ -11,4 +11,5 @@ public sealed class ChildSegmentSyntax: BaseChildSegmentSyntax
     {
         return "." + Selector;
     }
+    public override SyntaxKind Kind => SyntaxKind.ChildSegment;
 }

@@ -7,6 +7,17 @@ sealed partial class Parser
     readonly Lexer lexer;
     Token token;
     Token nextToken;
+    List<string>? errors = null;
+    void AddError(string message)
+    {
+        errors ??= [];
+        errors.Add(message);
+    }
+    void AddErrorAndReadToken(string message)
+    {
+        AddError(message);
+        ReadToken();
+    }
     public Parser(Lexer lexer)
     {
         this.lexer = lexer;
@@ -24,16 +35,17 @@ sealed partial class Parser
         ReadToken();
         return true;
     }
-    public JsonPathQuerySyntax ParseQuery()
+    public ParserResult ParseQuery()
     {
         ReadToken();
-        if(token.Kind == SyntaxKind.DollarMarkToken)
-        {
-            var segments = Segments();
-            Expect(SyntaxKind.EndOfFile);
-            return new JsonPathQuerySyntax(segments.AsReadOnly());
-        }
-        return null!;
+        if(token.Kind != SyntaxKind.DollarMarkToken)
+            return null!;
+
+        var segments = Segments();
+        Expect(SyntaxKind.EndOfFile);
+        if(errors != null)
+            return new (errors.AsReadOnly());
+        return new(new JsonPathQuerySyntax(segments.AsReadOnly()));
     }
     List<SegmentSyntax> Segments()
     {
@@ -45,7 +57,7 @@ sealed partial class Parser
     bool TryParseSegment([NotNullWhen(true)] out SegmentSyntax? segment)
     {
         segment = null;
-        switch(nextToken.Kind)
+        switch(nextToken.Kind)// "[" | "." | ".."
         {
             case SyntaxKind.OpenBracketToken:
             case SyntaxKind.DotToken:
@@ -55,10 +67,7 @@ sealed partial class Parser
                 segment = DescendantSegment();
                 break;
         }
-        // "[" | "." | ".."
-
         return segment != null;
-        // segment             = child-segment / descendant-segment
     }
     BaseChildSegmentSyntax ChildSegment()
     {
@@ -68,9 +77,6 @@ sealed partial class Parser
         if(nextToken.Kind == SyntaxKind.AsteriskToken)
             return new ChildSegmentSyntax(WildcardSelector());
         return new ChildSegmentSyntax(MemberNameShorthand());
-        /*
-        child-segment = bracketed-selection /
-                        ("." (wildcard-selector / member-name-shorthand)) */
     }
     WildcardSelectorSyntax WildcardSelector()
     {
@@ -86,35 +92,34 @@ sealed partial class Parser
     }
     List<SelectorSyntax> Selectors()
     {
-        List<SelectorSyntax> selectors = [Selector()];
-        while(Skip(SyntaxKind.CommaToken))
-            selectors.Add(Selector());
+        List<SelectorSyntax> selectors = [];
+        do
+        {
+            var selector = Selector();
+            if(selector == null)
+                return selectors;
+            selectors.Add(selector);
+        } while(TryReadToken(SyntaxKind.CommaToken));
         return selectors;
     }
-    SelectorSyntax Selector()
+    SelectorSyntax? Selector()
     {
-        return nextToken.Kind switch
+        switch(nextToken.Kind)
         {
-            SyntaxKind.StringLiteralToken => NameSelector(),
-            SyntaxKind.AsteriskToken => WildcardSelector(),
-            SyntaxKind.IntegerNumberLiteral or SyntaxKind.ColonToken => SliceOrIndexSelector(),
-            SyntaxKind.QuestionMarkToken => FlterSelector(),
-            _ => throw new InvalidOperationException($"Unexpected token kind: '{nextToken.Kind}'."),
-        };
-
-
-        /*
-
-        selector            = name-selector  /       " or  '
-                              wildcard-selector /    *
-                              slice-selector /       [start S] ":" S [end S] [":" [S step ]]
-                              index-selector /       index-selector      = int
-                              filter-selector     = "?" S logical-expr
-
-        int       = "0" / (["-"] DIGIT1 *DIGIT)      ; - optional
-        DIGIT1    = %x31-39                    ; 1-9 non-zero digit
-
-         */
+            case SyntaxKind.StringLiteralToken:
+                return new NameSelectorSyntax(SyntaxFacts.GetStringLiteralValue(ReadToken().Text));
+            case SyntaxKind.AsteriskToken:
+                ReadToken();
+                return new WildcardSelectorSyntax();
+            case SyntaxKind.IntegerNumberLiteral or SyntaxKind.ColonToken:
+                return SliceOrIndexSelector();
+            case SyntaxKind.QuestionMarkToken:
+                ReadToken();
+                return new FlterSelectorSyntax(LogicalOrExpression());
+            default:
+                AddErrorAndReadToken($"Unexpected token kind: '{nextToken.Kind}'.");
+                return null;
+        }
     }
     SelectorSyntax SliceOrIndexSelector()
     {
@@ -133,7 +138,7 @@ sealed partial class Parser
         {
             ReadToken();
         }
-        if(Skip(SyntaxKind.IntegerNumberLiteral) || Skip(SyntaxKind.ColonToken))
+        if(TryReadToken(SyntaxKind.IntegerNumberLiteral) || TryReadToken(SyntaxKind.ColonToken))
         {
             if(token.Kind == SyntaxKind.ColonToken)
                 seconColon = token;
@@ -141,16 +146,16 @@ sealed partial class Parser
                 end = token;
             if(seconColon.HasValue)
             {
-                if(Skip(SyntaxKind.IntegerNumberLiteral))
+                if(TryReadToken(SyntaxKind.IntegerNumberLiteral))
                     step = token;
             }
             else
             {
-                if(Skip(SyntaxKind.ColonToken))
+                if(TryReadToken(SyntaxKind.ColonToken))
                     seconColon = token;
             }
         }
-        if(seconColon.HasValue && Skip(SyntaxKind.IntegerNumberLiteral))
+        if(seconColon.HasValue && TryReadToken(SyntaxKind.IntegerNumberLiteral))
             step = token;
         return new SliceSelectorSyntax(start, firstColon, end, seconColon, step);
         // slice-selector /       [start S] ":" S [end S] [":" [S step ]]
@@ -159,34 +164,26 @@ sealed partial class Parser
  index-selector /       index-selector      = int
 */
     }
-    private FlterSelectorSyntax FlterSelector()
-    {
-        Expect(SyntaxKind.QuestionMarkToken);
-        var expression = LogicalExpression();
-        return new FlterSelectorSyntax(expression);
-        //filter-selector     = "?" S logical-expr
-    }
-
-    NameSelectorSyntax NameSelector()
-    {
-        Expect(SyntaxKind.StringLiteralToken);
-        return new NameSelectorSyntax(SyntaxFacts.GetStringLiteralValue(token.Text));
-    }
     MemberNameShorthandSelectorSyntax MemberNameShorthand()
     {
         Expect(SyntaxKind.MemberNameToken);
         return new MemberNameShorthandSelectorSyntax(token.Text);
     }
-    DescendantSegmentSyntax DescendantSegment()
+    DescendantSegmentSyntax? DescendantSegment()
     {
         Expect(SyntaxKind.DotDotToken);
-        return nextToken.Kind switch
+        switch(nextToken.Kind)
         {
-            SyntaxKind.OpenBracketToken => new DescendantSegmentSyntax(BracketedSelection()),
-            SyntaxKind.AsteriskToken => new DescendantSegmentSyntax(WildcardSelector()),
-            SyntaxKind.MemberNameToken => new DescendantSegmentSyntax(MemberNameShorthand()),
-            _ => throw new InvalidOperationException($"Expected selector but was {nextToken.Kind}."),
-        };
+            case SyntaxKind.OpenBracketToken:
+                return new DescendantSegmentSyntax(BracketedSelection());
+            case SyntaxKind.AsteriskToken:
+                return new DescendantSegmentSyntax(WildcardSelector());
+            case SyntaxKind.MemberNameToken:
+                return new DescendantSegmentSyntax(MemberNameShorthand());
+            default:
+                AddErrorAndReadToken($"Expected segment but was {nextToken.Kind}.");
+                return null;
+        }
         /*
 descendant-segment  = ".." (bracketed-selection /
           wildcard-selector /
@@ -196,14 +193,7 @@ descendant-segment  = ".." (bracketed-selection /
     void Expect(SyntaxKind tokenKind)
     {
         if(nextToken.Kind != tokenKind)
-            throw new InvalidOperationException($"Expected {tokenKind} but was {nextToken.Kind}");
+            AddError($"Expected {tokenKind} but was {nextToken.Kind}.");
         ReadToken();
-    }
-    bool Skip(SyntaxKind tokenKind)
-    {
-        if(nextToken.Kind != tokenKind)
-            return false;
-        ReadToken();
-        return true;
     }
 }

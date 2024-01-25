@@ -7,8 +7,6 @@ public sealed class MemberNameShorthandSelectorSyntax: SelectorSyntax
         MemberName = memberName;
     }
     public string MemberName { get; }
-    public override string ToString()
-    {
-        return MemberName;
-    }
+    public override string ToString() => MemberName;
+    public override SyntaxKind Kind => SyntaxKind.MemberNameShorthandSelector;
 }

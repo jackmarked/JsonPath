@@ -8,9 +8,6 @@ public sealed class JsonPathQuerySyntax: JsonPathSyntaxNode
     }
 
     public IReadOnlyList<SegmentSyntax> Segments { get; }
-    public override SyntaxKind Kind => SyntaxKind.Unknown;
-    public override string ToString()
-    {
-        return "$" + string.Concat(Segments);
-    }
+    public override SyntaxKind Kind => SyntaxKind.JsonPathQuery;
+    public override string ToString() => "$" + string.Concat(Segments);
 }

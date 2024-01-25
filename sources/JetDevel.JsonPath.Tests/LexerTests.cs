@@ -54,7 +54,6 @@ sealed class LexerTests
         // Assert.
         Assert.That(syntaxKinds, Is.EquivalentTo(expectedKinds));
     }
-
     [Test]
     public void Constructor_CallWithNull_ThrowsArgumentNullExeption()
     {
@@ -70,7 +69,6 @@ sealed class LexerTests
     [Test]
     public void Parse_BracketedSelectorWithNameSelectorUnicode_ReturnsValidSelectors()
     {
-
         var result = GetTokens("$.🙏");
         Assert.Multiple(() =>
         {

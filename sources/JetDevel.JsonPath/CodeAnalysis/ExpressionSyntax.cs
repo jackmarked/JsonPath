@@ -2,7 +2,7 @@
 
 public abstract class ExpressionSyntax: JsonPathSyntaxNode
 {
-    protected ExpressionSyntax()
+    protected private ExpressionSyntax()
     {
     }
 }
