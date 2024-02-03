@@ -134,7 +134,7 @@ partial class Parser
         };
     }
 
-    LogcalNotExpressionSyntax LogicalNotExpression()
+    LogicalNotExpressionSyntax LogicalNotExpression()
     {
         Expect(SyntaxKind.ExclamationToken);
         if(nextToken.Kind == SyntaxKind.OpenParenToken)

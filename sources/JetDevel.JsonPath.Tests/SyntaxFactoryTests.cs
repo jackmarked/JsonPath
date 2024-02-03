@@ -80,7 +80,7 @@ sealed class SyntaxFactoryTests
         });
     }
     [Test]
-    public void Parse_BracketedSelectorWithSurogateNameSelector_ReturnsValidSelectors()
+    public void Parse_BracketedSelectorWithSurrogateNameSelector_ReturnsValidSelectors()
     {
         var expectedName = "🤔";
         Console.WriteLine(expectedName.Length);
@@ -152,23 +152,23 @@ sealed class SyntaxFactoryTests
         });
     }
     [Test]
-    public void Parse_SearchSelecor_ReturnsValidSelector()
+    public void Parse_SearchSelector_ReturnsValidSelector()
     {
         var result = SyntaxFactory.Parse("$.a[?@.b]");
         var descendantSegment = result.Segments[1] as BracketedSelectionSegmentSyntax;
-        var filterSelector = descendantSegment.Selectors[0] as FlterSelectorSyntax;
+        var filterSelector = descendantSegment.Selectors[0] as FilterSelectorSyntax;
         Assert.Multiple(() =>
         {
             Assert.That(filterSelector.Expression, Is.Not.Null);
         });
     }
     [Test]
-    public void Parse_SearchSelecorWithCompasionEquals_ReturnsValid()
+    public void Parse_SearchSelectorWithComparsonEquals_ReturnsValid()
     {
         var result = SyntaxFactory.Parse("$.a[?!(@.b == 'kilo' || length(@.c, 7, 7 <= 3) == 8 && @.d == false)  ]");
         var segment = result.Segments[1] as BracketedSelectionSegmentSyntax;
-        var selector = segment.Selectors[0] as FlterSelectorSyntax;
-        var expression = ((selector.Expression as LogcalNotExpressionSyntax).Expression as ParenthesizedExpressionSyntax).Expression;
+        var selector = segment.Selectors[0] as FilterSelectorSyntax;
+        var expression = ((selector.Expression as LogicalNotExpressionSyntax).Expression as ParenthesizedExpressionSyntax).Expression;
         Assert.Multiple(() =>
         {
             Assert.That(expression.Kind, Is.EqualTo(SyntaxKind.LogicalOrExpression));

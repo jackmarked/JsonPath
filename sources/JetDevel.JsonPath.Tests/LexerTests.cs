@@ -57,7 +57,7 @@ sealed class LexerTests
     [Test]
     public void Constructor_CallWithNull_ThrowsArgumentNullExeption()
     {
-        // Arange.
+        // Arrange.
         UnicodeCharacterReader value = null;
 
         // Act.
@@ -78,7 +78,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithEmptyReader_ReturnsEndOfFile()
     {
-        // Arange.
+        // Arrange.
         var value = new Utf8BytesUnicodeCharacterReader([]);
         var lexer = new Lexer(value);
 
@@ -91,7 +91,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithDollar_ReturnsRootIdentifierToken()
     {
-        // Arange.
+        // Arrange.
         var value = "$";
         SyntaxKind[] expectedKinds = [SyntaxKind.DollarMarkToken];
 
@@ -104,7 +104,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithDollarDotAsterisk_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "$.*";
         SyntaxKind[] expectedKinds = [SyntaxKind.DollarMarkToken, SyntaxKind.DotToken, SyntaxKind.AsteriskToken];
 
@@ -114,7 +114,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithBraketed_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "$[123489]";
 
         // Assert.
@@ -126,7 +126,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithMultiIndex_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "$[1, 2, 8]";
 
         // Assert.
@@ -142,7 +142,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithMemberName_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "$.abab";
 
         // Assert.
@@ -154,7 +154,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithSlice_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "$[1:2:3]";
 
         // Assert.
@@ -169,9 +169,9 @@ sealed class LexerTests
             SyntaxKind.CloseBracketToken);
     }
     [Test]
-    public void GetTokens_CallWithSingleQuotedStirngLitersl_ReturnsValidTokens()
+    public void GetTokens_CallWithSingleQuotedStringLiterals_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "$['ab']";
 
         // Assert.
@@ -182,9 +182,9 @@ sealed class LexerTests
             SyntaxKind.CloseBracketToken);
     }
     [Test]
-    public void GetTokens_CallWithDoubleQuotedStirngLiteral_ReturnsValidTokens()
+    public void GetTokens_CallWithDoubleQuotedStringLiteral_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = @" ""ab"" ";
 
         // Assert.
@@ -192,9 +192,9 @@ sealed class LexerTests
             SyntaxKind.StringLiteralToken);
     }
     [Test]
-    public void GetTokens_CallWithSingleQuotedStirngLiterslWithEscapable_ReturnsValidTokens()
+    public void GetTokens_CallWithSingleQuotedStringLiteralsWithEscapable_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = """$['a\b\f\n\r\t\/\'']""";
 
         // Assert.
@@ -205,9 +205,9 @@ sealed class LexerTests
             SyntaxKind.CloseBracketToken);
     }
     [Test]
-    public void GetTokens_CallWithSingleQuotedStirngLiterslWithHexEscapable_ReturnsValidTokens()
+    public void GetTokens_CallWithSingleQuotedStringLiteralsWithHexEscapable_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "$['a\\uA123']";
 
         // Assert.
@@ -218,9 +218,9 @@ sealed class LexerTests
             SyntaxKind.CloseBracketToken);
     }
     [Test]
-    public void GetTokens_CallWithSingleQuotedStirngLiterslWithSingleQuoteEscaped_ReturnsValidTokens()
+    public void GetTokens_CallWithSingleQuotedStringLiteralsWithSingleQuoteEscaped_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "$['a\\'']";
 
         // Assert.
@@ -231,9 +231,9 @@ sealed class LexerTests
             SyntaxKind.CloseBracketToken);
     }
     [Test]
-    public void GetTokens_CallWithSingleQuotedStirngLiterslWithDoubleQuote_ReturnsValidTokens()
+    public void GetTokens_CallWithSingleQuotedStringLiteralsWithDoubleQuote_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = @"$['a""']";
 
         // Assert.
@@ -246,15 +246,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithBomAndRootIdentifier_ReturnsValidTokens()
     {
-        /*
-         
-Для указания, что файл или поток содержит символы Юникода, в начале файла или потока может быть вставлен маркер последовательности байтов (англ. Byte order mark, BOM), который в случае кодирования в UTF-8 принимает форму трёх байтов: EF BB BF16.
-
-                  1-й байт     2-й байт     3-й байт
-Двоичный код          1110 1111    1011 1011    1011 1111
-Шестнадцатеричный код        EF           BB           BF
-         */
-        // Arange.
+        // Arrange.
         var source = new byte[] { 0xEF, 0xBB, 0xBF, (byte)'$' };
 
         // Assert.
@@ -264,7 +256,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithCompOperatorTokens_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = "! < > == != <= >= ";
 
         // Assert.
@@ -278,9 +270,9 @@ sealed class LexerTests
             SyntaxKind.GreaterEqualsToken);
     }
     [Test]
-    public void GetTokens_CallWithLogcalOperatorsText_ReturnsValidTokens()
+    public void GetTokens_CallWithLogicalOperatorsText_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = " ! || && ";
 
         // Assert.
@@ -292,7 +284,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithIntegerText_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = " 123456 ";
 
         // Assert.
@@ -302,7 +294,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithZeroText_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = " 0 ";
 
         // Assert.
@@ -312,7 +304,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithNegativeInteger_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = " -7 ";
 
         // Assert.
@@ -322,7 +314,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithNegativeFloat_ReturnsFlatTokens()
     {
-        // Arange.
+        // Arrange.
         var source = " -0.7123E+54";
 
         // Assert.
@@ -331,7 +323,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithPositiveFloat_ReturnsFlatTokens()
     {
-        // Arange.
+        // Arrange.
         var source = " 0.9824e-38";
 
         // Assert.
@@ -340,7 +332,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithNegativeZero_ReturnsUnknown()
     {
-        // Arange.
+        // Arrange.
         var source = " -0 ";
 
         // Assert.
@@ -349,7 +341,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithFractionNumberOnly_ReturnsParen()
     {
-        // Arange.
+        // Arrange.
         var source = " -0.76876 ";
 
         // Assert.
@@ -358,7 +350,7 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithParen_ReturnsValidTokens()
     {
-        // Arange.
+        // Arrange.
         var source = " ( ) ";
 
         // Assert.
@@ -367,34 +359,34 @@ sealed class LexerTests
     [Test]
     public void GetTokens_CallWithExponentNumberOnly_ReturnsFloatNumberLiteral()
     {
-        // Arange.
+        // Arrange.
         var source = " 122E6 ";
 
         // Assert.
         AssertTokenKinds(source, SyntaxKind.FloatNumberLiteral);
     }
-    [Test/*, Ignore("todo")*/]
+    [Test]
     public void GetTokens_CallWithWrongSingleQuotedStringLiteral_ReturnsUnknown()
     {
-        // Arange.
+        // Arrange.
         var source = """ '\' """;
 
         // Assert.
         AssertTokenKinds(source, SyntaxKind.Unknown);
     }
-    [Test/*, Ignore("todo")*/]
+    [Test]
     public void GetTokens_CallWithWrongDoubleQuotedStringLiteral_ReturnsUnknown()
     {
-        // Arange.
+        // Arrange.
         var source = """ "\" """;
 
         // Assert.
         AssertTokenKinds(source, SyntaxKind.Unknown);
     }
-    [Test/*, Ignore("todo")*/]
+    [Test]
     public void GetTokens_CallWithWrongDoubleEscapedStringLiteral_ReturnsUnknown()
     {
-        // Arange.
+        // Arrange.
         var source = """ "\ud""";
 
         // Assert.
@@ -403,7 +395,7 @@ sealed class LexerTests
     [Test/*, Ignore("todo")*/]
     public void GetTokens_CallWithWrongDoubleEscapedStringLiteral_ReturnsUnknown1()
     {
-        // Arange.
+        // Arrange.
         var source = """ #  # """;
 
         // Assert.

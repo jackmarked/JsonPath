@@ -10,8 +10,5 @@ public sealed class FunctionExpressionSyntax: ExpressionSyntax
     public string Name { get; }
     public IReadOnlyList<ExpressionSyntax> Arguments { get; }
     public override SyntaxKind Kind => SyntaxKind.FunctionExpression;
-    public override string ToString()
-    {
-        return Name + "(" + string.Join(", ", Arguments) + ")";
-    }
+    public override string ToString() => Name + "(" + string.Join(", ", Arguments) + ")";
 }

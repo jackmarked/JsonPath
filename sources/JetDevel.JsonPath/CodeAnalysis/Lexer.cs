@@ -139,7 +139,7 @@ public sealed partial class Lexer
                         return negativeDecimalToken;
                     else
                         return CreateToken(SyntaxKind.Unknown);
-                if(!TryRead(KnownCodes.DigitsWitout0))
+                if(!TryRead(KnownCodes.DigitsWithout0))
                     return CreateToken(SyntaxKind.Unknown);
                 ReadAll(KnownCodes.Digits);
                 return CreateToken(SyntaxKind.IntegerNumberLiteral);

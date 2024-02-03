@@ -2,7 +2,5 @@
 
 public abstract class SegmentSyntax: JsonPathSyntaxNode
 {
-    protected private SegmentSyntax()
-    {
-    }
+    protected private SegmentSyntax() { }
 }

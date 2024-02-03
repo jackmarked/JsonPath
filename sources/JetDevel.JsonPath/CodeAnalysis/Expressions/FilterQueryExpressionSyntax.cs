@@ -2,9 +2,8 @@
 
 public sealed class FilterQueryExpressionSyntax: QueryExpressionSyntax
 {
-    internal FilterQueryExpressionSyntax(QueryType queryType, IReadOnlyList<SegmentSyntax> segments) : base(queryType, segments)
-    {
-    }
+    internal FilterQueryExpressionSyntax(QueryType queryType, IReadOnlyList<SegmentSyntax> segments)
+        : base(queryType, segments) { }
 
     public override SyntaxKind Kind => SyntaxKind.FilterQueryExpression;
 }

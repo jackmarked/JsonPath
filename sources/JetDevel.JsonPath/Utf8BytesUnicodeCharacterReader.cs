@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace JetDevel.JsonPath;
+﻿namespace JetDevel.JsonPath;
 public sealed class Utf8BytesUnicodeCharacterReader: UnicodeCharacterReader
 {
     readonly byte[] bytes;
@@ -17,22 +15,26 @@ public sealed class Utf8BytesUnicodeCharacterReader: UnicodeCharacterReader
         this.bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
         this.offset = 0;
         maxOffset = bytes.Length - 1;
-        if(maxOffset > 1 && bytes.AsSpan(0, 3) is [0xEF, 0xBB, 0xBF]) // Skip utf8 byte order mark.
-            offset = 3;
+        SkipByteOrderMark();
     }
-    public override bool TryReadNext(out UnicodeCharacter chrarcter)
+    void SkipByteOrderMark()
     {
-        chrarcter = UnicodeCharacter.EndOfStream;
-        if(IsEndOfStream())
+        const int byteOrderMarkLength = 3;
+        if(maxOffset > 1 && bytes.AsSpan(0, byteOrderMarkLength) is [0xEF, 0xBB, 0xBF])
+            offset = byteOrderMarkLength;
+    }
+    public override bool TryReadNext(out UnicodeCharacter character)
+    {
+        character = UnicodeCharacter.EndOfStream;
+        if(!TryReadNextOctet(out var firstOctet))
             return false;
-        var firstOctet = ReadOctet();
         if(firstOctet < 0x80)
         {
-            chrarcter = firstOctet;
+            character = firstOctet;
             return true;
         }
-        chrarcter = GetMultiOctetSymbol(firstOctet);
-        return chrarcter != UnicodeCharacter.EndOfStream;
+        character = GetMultiOctetSymbol(firstOctet);
+        return character != UnicodeCharacter.EndOfStream;
     }
     UnicodeCharacter GetMultiOctetSymbol(byte firstOctet)
     {
@@ -64,38 +66,34 @@ public sealed class Utf8BytesUnicodeCharacterReader: UnicodeCharacterReader
     }
     static int GetUnicodeSymbolCode(int firstOctet, int secondOctet, int thirdOctet, int forthOctet)
     {
-        var result =
+        var result = // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
             ((firstOctet & 0b0000_0111) << 18) |
             ((secondOctet & 0b0011_1111) << 12) |
             ((thirdOctet & 0b0011_1111) << 6) |
             (forthOctet & 0b0011_1111);
         return result;
-        // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
     }
     static int GetUnicodeSymbolCode(int firstOctet, int secondOctet, int thirdOctet)
     {
-
-        var result =
+        var result = // 1110xxxx 10xxxxxx 10xxxxxx
             ((firstOctet & 0b0000_1111) << 12) |
             ((secondOctet & 0b0011_1111) << 6) |
             (thirdOctet & 0b0011_1111);
         return result;
-        // 1110xxxx 10xxxxxx 10xxxxxx
     }
     static int GetUnicodeSymbolCode(int firstOctet, int secondOctet)
     {
-        int result = firstOctet & 0b0001_1111;
-        result <<= 6;
-        result += (secondOctet & 0b0011_1111);
+        var result = // 110xxxxx 10xxxxxx
+            ((firstOctet & 0b0001_1111) << 6) |
+            (secondOctet & 0b0011_1111);
         return result;
-        // 	110xxxxx 10xxxxxx
     }
-    private bool TryReadNextOctet(out byte octet)
+    bool TryReadNextOctet(out byte octet)
     {
         octet = byte.MaxValue;
-        if(IsEndOfStream())
+        if(offset > maxOffset)
             return false;
-        octet = ReadOctet();
+        octet = bytes[offset++];
         return true;
     }
     static Utf8SmbolKind GetSymbolLengthKind(byte octet)
@@ -150,13 +148,5 @@ public sealed class Utf8BytesUnicodeCharacterReader: UnicodeCharacterReader
         byte mask = 0b1100_0000;
         byte result = 0b1000_0000; // 10xxxxxx
         return (mask & octet) == result;
-    }
-    bool IsEndOfStream()
-    {
-        return offset > maxOffset;
-    }
-    private byte ReadOctet()
-    {
-        return bytes[offset++];
     }
 }

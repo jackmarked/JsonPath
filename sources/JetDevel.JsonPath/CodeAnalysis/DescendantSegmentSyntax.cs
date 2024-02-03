@@ -2,14 +2,10 @@
 
 public sealed class DescendantSegmentSyntax: SegmentSyntax
 {
-    internal DescendantSegmentSyntax(BracketedSelectionSegmentSyntax bracketedSelectionSegment)
-    {
+    internal DescendantSegmentSyntax(BracketedSelectionSegmentSyntax bracketedSelectionSegment) =>
         SelectionSegmentSyntax = bracketedSelectionSegment;
-    }
-    internal DescendantSegmentSyntax(SelectorSyntax selector)
-    {
+    internal DescendantSegmentSyntax(SelectorSyntax selector) =>
         Selector = selector;
-    }
     public SelectorSyntax? Selector { get; }
     public BracketedSelectionSegmentSyntax? SelectionSegmentSyntax { get; }
     public override SyntaxKind Kind => SyntaxKind.DescendantSegment;

@@ -2,13 +2,8 @@
 
 public abstract class LiteralExpressionSyntax<TValue>: ExpressionSyntax
 {
-    protected private LiteralExpressionSyntax(TValue value)
-    {
-        Value = value;
-    }
+    protected private LiteralExpressionSyntax(TValue value) => Value = value;
     public TValue Value { get; }
-    public override string ToString()
-    {
-        return (Value is null ? "null" : Value.ToString()) ?? string.Empty;
-    }
+    public override string ToString() =>
+        (Value is null ? "null" : Value.ToString()) ?? string.Empty;
 }

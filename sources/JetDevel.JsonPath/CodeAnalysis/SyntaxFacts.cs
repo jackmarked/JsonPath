@@ -22,7 +22,9 @@ public static class SyntaxFacts
             SyntaxKind.EqualsEqualsToken => "==",
             SyntaxKind.GreaterEqualsToken => ">=",
             SyntaxKind.LessEqualsToken => "<=",
-            _ => string.Empty,
+            SyntaxKind.LessToken => "<",
+            SyntaxKind.GreaterToken => ">",
+            _ => string.Empty
         };
     }
     internal static string GetStringLiteralValue(string text)

@@ -72,7 +72,7 @@ sealed partial class SyntaxBasedJsonPathQuery: JsonPathQuery
                 return IndexSelect(element, indexSelector.Index, descendant);
             case SliceSelectorSyntax sliceSelector:
                 return SliceSelector(element, sliceSelector, context, descendant);
-            case FlterSelectorSyntax flterSelector:
+            case FilterSelectorSyntax flterSelector:
                 return FilterSelect(element, flterSelector.Expression, context, descendant);
             default:
                 return [];

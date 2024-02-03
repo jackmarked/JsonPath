@@ -898,7 +898,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$[0:2].key""", """["ey","bee"]""");
     }
     [Test]
-    public void DotNotationaAfterBracketNotationAfterRecursiveDescent()
+    public void DotNotationAfterBracketNotationAfterRecursiveDescent()
     {
         var source = """
 {
@@ -910,7 +910,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$..[1].key""", """[200,42,500]""", true);
     }
     [Test]
-    public void DotNotationaAfterBracketNotationWithWildcard()
+    public void DotNotationAfterBracketNotationWithWildcard()
     {
         var source = """
 [{"a": 1},{"a": 1}]
@@ -918,7 +918,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$[*].a""", """[1,1]""");
     }
     [Test]
-    public void DotNotationaAfterBracketNotationWithWildcardOnOneMatching()
+    public void DotNotationAfterBracketNotationWithWildcardOnOneMatching()
     {
         var source = """
 [{"a": 1}]
@@ -926,7 +926,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$[*].a""", """[1]""");
     }
     [Test]
-    public void DotNotationaAfterBracketNotationWithWildcardOnSomeMatching()
+    public void DotNotationAfterBracketNotationWithWildcardOnSomeMatching()
     {
         var source = """
 [{"a": 1},{"b": 1}]
@@ -934,7 +934,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$[*].a""", """[1]""");
     }
     [Test]
-    public void DotNotationaAfterFilterExpression()
+    public void DotNotationAfterFilterExpression()
     {
         var source = """
 [{"id": 42, "name": "forty-two"}, {"id": 1, "name": "one"}]
@@ -942,7 +942,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$[?(@.id==42)].name""", """["forty-two"]""");
     }
     [Test]
-    public void DotNotationaAfterRecursiveDescent()
+    public void DotNotationAfterRecursiveDescent()
     {
         var source = """
 {
@@ -959,7 +959,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$..key""", """["russian dolls","something","top","value",{"key": "russian dolls"}]""", true);
     }
     [Test]
-    public void DotNotationaAfterRecursiveDescentAfterDotNotation()
+    public void DotNotationAfterRecursiveDescentAfterDotNotation()
     {
         var source = """
 {
@@ -1002,7 +1002,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.store..price""", """[12.99,19.95,22.99,8.95,8.99]""", true);
     }
     [Test]
-    public void DotNotationaAfterRecursiveDescentWithExtraDot()
+    public void DotNotationAfterRecursiveDescentWithExtraDot()
     {
         var source = """
 {
@@ -1019,7 +1019,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$...key""", """[]""");
     }
     [Test]
-    public void DotNotationaAfterUnion()
+    public void DotNotationAfterUnion()
     {
         var source = """
 [{"key": "ey"}, {"key": "bee"}, {"key": "see"}]
@@ -1027,7 +1027,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$[0,2].key""", """["ey","see"]""");
     }
     [Test]
-    public void DotNotationaAfterUnionWithKeys()
+    public void DotNotationAfterUnionWithKeys()
     {
         var source = """
 {
@@ -1039,7 +1039,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$['one','three'].key""", """["value","other value"]""");
     }
     [Test, Ignore("TODO")]
-    public void DotNotationaWithDash()
+    public void DotNotationWithDash()
     {
         var source = """
 {
@@ -1056,7 +1056,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.key-dash""", """["value"]""");
     }
     [Test]
-    public void DotNotationaWithDoubleQuotes()
+    public void DotNotationWithDoubleQuotes()
     {
         var source = """
 {
@@ -1067,7 +1067,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$."key" """, """[]""");
     }
     [Test]
-    public void DotNotationaWithDoubleQuotesAfterRecursiveDescent()
+    public void DotNotationWithDoubleQuotesAfterRecursiveDescent()
     {
         var source = """
 {
@@ -1086,7 +1086,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$.."key" """, """[]""");
     }
     [Test]
-    public void DotNotationaWithEmptyPath()
+    public void DotNotationWithEmptyPath()
     {
         var source = """
 {"key": 42, "": 9001, "''": "nice"}
@@ -1094,7 +1094,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$.""", """[]""");
     }
     [Test]
-    public void DotNotationaWithKeyNamedIn()
+    public void DotNotationWithKeyNamedIn()
     {
         var source = """
 { "in": "value" }
@@ -1102,7 +1102,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.in""", """["value"]""");
     }
     [Test]
-    public void DotNotationaWithKeyNamedLength()
+    public void DotNotationWithKeyNamedLength()
     {
         var source = """
 { "length": "value" }
@@ -1110,7 +1110,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.length""", """["value"]""");
     }
     [Test]
-    public void DotNotationaWithKeyNamedLengthOnArray()
+    public void DotNotationWithKeyNamedLengthOnArray()
     {
         var source = """
 [4, 5, 6]
@@ -1118,7 +1118,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.length""", """[]""");
     }
     [Test]
-    public void DotNotationaWithKeyNamedNull()
+    public void DotNotationWithKeyNamedNull()
     {
         var source = """
 {
@@ -1128,7 +1128,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.null""", """["value"]""");
     }
     [Test]
-    public void DotNotationaWithKeyNamedTrue()
+    public void DotNotationWithKeyNamedTrue()
     {
         var source = """
 {
@@ -1138,7 +1138,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.true""", """["value"]""");
     }
     [Test]
-    public void DotNotationaWithKeyRootLiteral()
+    public void DotNotationWithKeyRootLiteral()
     {
         var source = """
 {
@@ -1148,7 +1148,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$.$""", """["value"]""");
     }
     [Test]
-    public void DotNotationaWithNonAsciiKey()
+    public void DotNotationWithNonAsciiKey()
     {
         var source = """
 {
@@ -1158,7 +1158,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.屬性""", """["value"]""");
     }
     [Test]
-    public void DotNotationaWithNumber()
+    public void DotNotationWithNumber()
     {
         var source = """
 ["first", "second", "third", "forth", "fifth"]
@@ -1166,7 +1166,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$.2""", """["value"]""");
     }
     [Test, Ignore("TODO")]
-    public void DotNotationaWithNumberOnObject()
+    public void DotNotationWithNumberOnObject()
     {
         var source = """
 {"a": "first", "2": "second", "b": "third"}
@@ -1174,7 +1174,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.2""", """["second"]""");
     }
     [Test]
-    public void DotNotationaWithNumberMinus1()
+    public void DotNotationWithNumberMinus1()
     {
         var source = """
 ["first", "second", "third", "forth", "fifth"]
@@ -1182,7 +1182,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$.-1""", """[]""");
     }
     [Test]
-    public void DotNotationaWithSingleQuotes()
+    public void DotNotationWithSingleQuotes()
     {
         var source = """
 {
@@ -1193,7 +1193,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$.'key'""", """[]""");
     }
     [Test]
-    public void DotNotationaWithSingleQuotesAfterRecursiveDescent()
+    public void DotNotationWithSingleQuotesAfterRecursiveDescent()
     {
         var source = """
 {
@@ -1212,7 +1212,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$.'key'""", """[]""");
     }
     [Test]
-    public void DotNotationaWithSingleQuotesAndDot()
+    public void DotNotationWithSingleQuotesAndDot()
     {
         var source = """
 {"some.key": 42, "some": {"key": "value"}, "'some.key'": 43}
@@ -1220,7 +1220,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$.'some.key'""", """[]""");
     }
     [Test]
-    public void DotNotationaWithSpacePaddedKey()
+    public void DotNotationWithSpacePaddedKey()
     {
         var source = """
 {" a": 1, "a": 2, " a ": 3, "": 4}
@@ -1228,7 +1228,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$. a""", """[2]""");
     }
     [Test]
-    public void DotNotationaWithWildcardOnArray()
+    public void DotNotationWithWildcardOnArray()
     {
         var source = """
 [
@@ -1243,7 +1243,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.*""", """["string",42,{"key": "value"},[0,1]]""");
     }
     [Test]
-    public void DotNotationaWithWildcardOnEmptyArray()
+    public void DotNotationWithWildcardOnEmptyArray()
     {
         var source = """
 []
@@ -1251,7 +1251,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.*""", """[]""");
     }
     [Test]
-    public void DotNotationaWithWildcardOnEmptyObject()
+    public void DotNotationWithWildcardOnEmptyObject()
     {
         var source = """
 {}
@@ -1259,7 +1259,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.*""", """[]""");
     }
     [Test]
-    public void DotNotationaWithWildcardOnObject()
+    public void DotNotationWithWildcardOnObject()
     {
         var source = """
 {
@@ -1274,7 +1274,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$.*""", """["string",42,[0,1],{"key": "value"}]""", true);
     }
     [Test]
-    public void DotNotationaWithWildcardAfterDotNotationAfterDotNotationWithWildcard()
+    public void DotNotationWithWildcardAfterDotNotationAfterDotNotationWithWildcard()
     {
         var source = """
 [{"bar": [42]}]
@@ -2128,7 +2128,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$[?(@.length() == 4)]""", """[[1,2,3,4]]""");
     }
     [Test]
-    public void FilterExpressionWithLengthPoperty()
+    public void FilterExpressionWithLengthProperty()
     {
         var source = """
 [
@@ -2536,7 +2536,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertInvalidQuery(source, """$[?(@.key=42)]""", """[]""");
     }
     [Test]
-    public void FilterExpressionWithSubfilter()
+    public void FilterExpressionWithSubFilter()
     {
         var source = """
 [
@@ -2549,7 +2549,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$[?(@.a[?(@.price>10)])]""", """[{"a": [{"price": 11}]},{"a": [{"price": 8}, {"price": 12}, {"price": 3}]}]""");
     }
     [Test]
-    public void FilterExpressionWithSubpaths()
+    public void FilterExpressionWithSubPaths()
     {
         var source = """
 [
@@ -2560,7 +2560,7 @@ sealed class JsonPathComparisonTests: JsonPathQueryTestFixture
         AssertQueryResult(source, """$[?(@.a.b==3)]""", """[{"a": {"b": 3}}]""");
     }
     [Test]
-    public void FilterExpressionWithSubpathsDeeplyNested()
+    public void FilterExpressionWithSubPathsDeeplyNested()
     {
         var source = """
 [{"a": {"b": {"c": 3}}}, {"a": 3}, {"c": 3}, {"a": {"b": {"c": 2}}}]

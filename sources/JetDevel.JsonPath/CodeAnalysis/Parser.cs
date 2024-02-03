@@ -18,7 +18,7 @@ sealed partial class Parser
         AddError(message);
         ReadToken();
     }
-    public Parser(Lexer lexer)
+    internal Parser(Lexer lexer)
     {
         this.lexer = lexer;
     }
@@ -115,7 +115,7 @@ sealed partial class Parser
                 return SliceOrIndexSelector();
             case SyntaxKind.QuestionMarkToken:
                 ReadToken();
-                return new FlterSelectorSyntax(LogicalOrExpression());
+                return new FilterSelectorSyntax(LogicalOrExpression());
             default:
                 AddErrorAndReadToken($"Unexpected token kind: '{nextToken.Kind}'.");
                 return null;

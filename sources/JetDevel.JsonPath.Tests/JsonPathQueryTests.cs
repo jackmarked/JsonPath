@@ -8,7 +8,7 @@ namespace JetDevel.JsonPath.Tests;
 sealed class JsonPathQueryTests: JsonPathQueryTestFixture
 {
     [Test]
-    public void Execte_WithoutSegment_ReturnsSameDocument()
+    public void Execute_WithoutSegment_ReturnsSameDocument()
     {
         // Arrange.
         string json = """
@@ -19,7 +19,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertQueryResult(json, "$", """[{"a": 1}]""");
     }
     [Test]
-    public void Execte_WithNamedSegment_ReturnsPropertyValue()
+    public void Execute_WithNamedSegment_ReturnsPropertyValue()
     {
         // Arrange.
         string json = """
@@ -32,7 +32,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertQueryResult(json, "$['a']", "[1]");
     }
     [Test]
-    public void Execte_WithWildcardSegment_ReturnsAllPrpertyValues()
+    public void Execute_WithWildcardSegment_ReturnsAllPropertyValues()
     {
         // Arrange.
         string json = """
@@ -54,7 +54,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithWildcardSegmentOnArray_ReturnsPrpertyValue()
+    public void Execute_WithWildcardSegmentOnArray_ReturnsPropertyValue()
     {
         // Arrange.
         string json = """
@@ -76,7 +76,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithWildcardAndIndexSegmentOnArrays_ReturnsPrpertyValue()
+    public void Execute_WithWildcardAndIndexSegmentOnArrays_ReturnsPrpertyValue()
     {
         // Arrange.
         string json = """
@@ -98,7 +98,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithWildcardAndMultiIndexSegmentOnArrays_ReturnsPrpertyValue()
+    public void Execute_WithWildcardAndMultiIndexSegmentOnArrays_ReturnsPropertyValue()
     {
         // Arrange.
         string json = """
@@ -120,7 +120,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithWildcardAndNegativeIndexSegmentOnArrays_ReturnsPrpertyValue()
+    public void Execute_WithWildcardAndNegativeIndexSegmentOnArrays_ReturnsPropertyValue()
     {
         // Arrange.
         string json = """
@@ -142,7 +142,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithOnOutOfoundIndexesSegmentOnArray_ReturnsValue()
+    public void Execute_WithOnOutOfBoundIndexesSegmentOnArray_ReturnsValue()
     {
         // Arrange.
         string json = """
@@ -161,7 +161,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithAllOnOutOfoundIndexesSegmentOnArray_ReturnsValue()
+    public void Execute_WithAllOnOutOfBoundIndexesSegmentOnArray_ReturnsValue()
     {
         // Arrange.
         var services = new JsonPathServices();
@@ -178,7 +178,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithAllOnOutOfoundIndexesSegmentOnObject_ReturnsEmptyArray()
+    public void ExecUte_WithAllOnOutOfBoundIndexesSegmentOnObject_ReturnsEmptyArray()
     {
         // Arrange.
         var services = new JsonPathServices();
@@ -195,7 +195,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_IndexesSegmentOnValue_ReturnsEmptyArray()
+    public void Execute_IndexesSegmentOnValue_ReturnsEmptyArray()
     {
         // Arrange.
         var services = new JsonPathServices();
@@ -212,7 +212,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_TooLongNamedSegments_ReturnsEmptyArray()
+    public void Execute_TooLongNamedSegments_ReturnsEmptyArray()
     {
         // Arrange.
         var document = JsonDocument.Parse("""
@@ -234,7 +234,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithEmptySliceSelector_ReturnsArray()
+    public void Execute_WithEmptySliceSelector_ReturnsArray()
     {
         // Arrange.
         var document = JsonDocument.Parse("""
@@ -251,7 +251,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithOneElementSliceSelector_ReturnsArray()
+    public void Execute_WithOneElementSliceSelector_ReturnsArray()
     {
         // Arrange.
         var document = JsonDocument.Parse("""
@@ -268,7 +268,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test]
-    public void Execte_WithNegativeStepSliceSelector_ReturnsReversedArray()
+    public void Execute_WithNegativeStepSliceSelector_ReturnsReversedArray()
     {
         // Arrange.
         var document = JsonDocument.Parse("""
@@ -285,7 +285,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertJsonEquivalent(expectedResult, queryResult);
     }
     [Test, Explicit]
-    public void Execte_()
+    public void Execute_()
     {
         var list = new ConcurrentBag<string>();
         var services = new JsonPathServices();
@@ -338,7 +338,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         Console.WriteLine(list.ToArray());
     }
     [Test]
-    public void Execte_DescendantSegment_ReturnsEmptyArray()
+    public void Execute_DescendantSegment_ReturnsEmptyArray()
     {
         // Arrange.
         var source = """
@@ -355,7 +355,7 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
         AssertQueryResult(source, "$..b", @"[2]");
     }
     [Test]
-    public void Execte_DescendantSegmentDeep_ReturnsEmptyArray()
+    public void Execute_DescendantSegmentDeep_ReturnsEmptyArray()
     {
         // Arrange.
         var source = """
@@ -689,5 +689,4 @@ sealed class JsonPathQueryTests: JsonPathQueryTestFixture
 """;
         AssertQueryResult(source, """$[?search(@.author, "[WM]ob")]""", """ [] """);
     }
-    //
 }

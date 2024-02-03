@@ -2,14 +2,9 @@
 
 public sealed class ChildSegmentSyntax: BaseChildSegmentSyntax
 {
-    internal ChildSegmentSyntax(SelectorSyntax selector)
-    {
+    internal ChildSegmentSyntax(SelectorSyntax selector) =>
         Selector = selector;
-    }
     public SelectorSyntax Selector { get; }
-    public override string ToString()
-    {
-        return "." + Selector;
-    }
+    public override string ToString() => "." + Selector;
     public override SyntaxKind Kind => SyntaxKind.ChildSegment;
 }

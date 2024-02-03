@@ -39,7 +39,7 @@ abstract class JsonPathQueryTestFixture
             Assert.That(values2, Is.Empty);
         }
         else
-            Assert.That(JsonNode.DeepEquals(root1, root2), $"Expcted {document1.RootElement} but was {document2.RootElement}.");
+            Assert.That(JsonNode.DeepEquals(root1, root2), $"Expected {document1.RootElement} but was {document2.RootElement}.");
     }
     protected static JsonNode Convert(JsonElement element) =>
         element.ValueKind switch

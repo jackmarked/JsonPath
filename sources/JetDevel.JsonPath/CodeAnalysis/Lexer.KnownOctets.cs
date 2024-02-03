@@ -10,7 +10,7 @@ partial class Lexer
         public static readonly SearchValues<byte> HexDigits = SearchValues.Create("0123456789ABCDEFabcdef"u8);
         public static readonly SearchValues<byte> HexDigitsWithoutD = SearchValues.Create("0123456789ABCEFabcef"u8);
         public static readonly SearchValues<byte> Digits = SearchValues.Create("0123456789"u8);
-        public static readonly SearchValues<byte> DigitsWitout0 = SearchValues.Create("123456789"u8);
+        public static readonly SearchValues<byte> DigitsWithout0 = SearchValues.Create("123456789"u8);
         public static readonly SearchValues<byte> Alpha = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"u8);
 
 

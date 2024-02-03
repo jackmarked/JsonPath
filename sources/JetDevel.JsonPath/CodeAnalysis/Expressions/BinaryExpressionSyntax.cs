@@ -14,8 +14,6 @@ public sealed class BinaryExpressionSyntax: ExpressionSyntax
     public ExpressionSyntax Right { get; }
     public override SyntaxKind Kind { get; }
 
-    public override string ToString()
-    {
-        return Left + operatorToken.Text + Right;
-    }
+    public override string ToString() =>
+        Left + operatorToken.Text + Right;
 }

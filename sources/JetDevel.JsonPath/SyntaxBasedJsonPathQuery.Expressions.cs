@@ -33,7 +33,7 @@ partial class SyntaxBasedJsonPathQuery
                 ExpressionValue left = EvaluateExpression(binary.Left, context);
                 ExpressionValue right = EvaluateExpression(binary.Right, context);
                 return EvaluateBinary(left, right, binary.Kind);
-            case LogcalNotExpressionSyntax logcalNot:
+            case LogicalNotExpressionSyntax logcalNot:
                 ExpressionValue baseExpression = EvaluateExpression(logcalNot.Expression, context);
                 return EvaluateLogicalNot(baseExpression);
             case ParenthesizedExpressionSyntax parenthesized:
